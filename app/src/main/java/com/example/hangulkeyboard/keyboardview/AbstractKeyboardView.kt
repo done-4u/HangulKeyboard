@@ -24,18 +24,18 @@ abstract class AbstractKeyboardView(
 ) {
     // layout
     protected abstract val associatedKeyboardBinding: ViewBinding
+    protected abstract val buttonStrings: Sequence<String>
+    protected abstract val buttonSequence: Sequence<Button>
+
+    // input connection and layout
+    lateinit var inputConnection: InputConnection
     val root: LinearLayout by lazy { associatedKeyboardBinding.root as LinearLayout }
-    var inputConnection: InputConnection? = null
 
     // audio, vibration
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private val vibratorManager =
         context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
     private val vibrationDuration: Long = 50
-
-    // hard-code this values to use protected methods
-    protected abstract val buttonStrings: List<String>
-    protected abstract val buttonSequence: Sequence<Button>
 
     /* Kotlin warns of using non-final properties in init to keep its initialization order.
      * Make sure to use below functions to initialize. */
@@ -86,7 +86,7 @@ abstract class AbstractKeyboardView(
     protected open fun clickShift() {}
 
     protected open fun clickBackspace() {
-        inputConnection?.deleteSurroundingTextInCodePoints(1, 0)
+        inputConnection.deleteSurroundingTextInCodePoints(1, 0)
     }
 
     protected open fun clickSpecial() {
@@ -98,17 +98,17 @@ abstract class AbstractKeyboardView(
     }
 
     protected open fun clickSpace() {
-        inputConnection?.commitText(" ", 1)
+        inputConnection.commitText(" ", 1)
     }
 
     protected open fun clickEnter() {
-        inputConnection?.commitText("\n", 1)
+        inputConnection.commitText("\n", 1)
     }
 
     protected open fun clickOther() {}
 
     protected open fun clickGeneral(keyText: CharSequence) {
         assert(keyText.length == 1)
-        inputConnection?.commitText(keyText, 1)
+        inputConnection.commitText(keyText, 1)
     }
 }
