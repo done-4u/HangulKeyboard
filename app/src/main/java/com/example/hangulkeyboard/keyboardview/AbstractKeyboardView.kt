@@ -37,8 +37,8 @@ abstract class AbstractKeyboardView(
     protected abstract val buttonStrings: List<String>
     protected abstract val buttonSequence: Sequence<Button>
 
-    /* Since Kotlin warns of using non-final properties in init, it cannot be inherited.
-     * Instead, use below functions to initialize. */
+    /* Kotlin warns of using non-final properties in init to keep its initialization order.
+     * Make sure to use below functions to initialize. */
     protected fun initializeAllButtons() {
         val buttonIterator = buttonSequence.iterator()
         val stringIterator = buttonStrings.iterator()
