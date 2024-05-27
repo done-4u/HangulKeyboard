@@ -4,7 +4,10 @@ import android.inputmethodservice.InputMethodService
 import android.os.Build
 import android.view.View
 import androidx.annotation.RequiresApi
-import com.example.hangulkeyboard.keyboardview.*
+import com.example.hangulkeyboard.keyboardview.AbstractKeyboardView
+import com.example.hangulkeyboard.keyboardview.KeyboardEnglish
+import com.example.hangulkeyboard.keyboardview.KeyboardKorean
+import com.example.hangulkeyboard.keyboardview.KeyboardSpecial
 
 @RequiresApi(Build.VERSION_CODES.S)
 class KeyboardService : InputMethodService() {

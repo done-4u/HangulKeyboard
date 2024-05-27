@@ -13,7 +13,7 @@ import com.example.hangulkeyboard.KeyboardModeChangeListener
 import com.example.hangulkeyboard.databinding.KeyboardAlphabetBinding
 
 @RequiresApi(Build.VERSION_CODES.S)
-class KeyboardEnglish constructor(
+class KeyboardEnglish(
     context: Context,
     layoutInflater: LayoutInflater,
     keyboardModeChangeListener: KeyboardModeChangeListener
@@ -66,6 +66,7 @@ class KeyboardEnglish constructor(
                             CapsMode.UPPER_FIXED -> "↑↑↑"
                         }
                     }
+
                     else -> when (value) {
                         CapsMode.LOWER -> nextText.lowercase()
                         else -> nextText.uppercase()

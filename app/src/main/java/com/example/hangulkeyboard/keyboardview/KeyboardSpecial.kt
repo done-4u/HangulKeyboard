@@ -12,7 +12,7 @@ import com.example.hangulkeyboard.KeyboardModeChangeListener
 import com.example.hangulkeyboard.databinding.KeyboardSymbolBinding
 
 @RequiresApi(Build.VERSION_CODES.S)
-class KeyboardSpecial constructor(
+class KeyboardSpecial(
     context: Context,
     layoutInflater: LayoutInflater,
     keyboardModeChangeListener: KeyboardModeChangeListener

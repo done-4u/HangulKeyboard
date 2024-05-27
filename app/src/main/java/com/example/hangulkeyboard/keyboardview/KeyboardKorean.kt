@@ -13,7 +13,7 @@ import com.example.hangulkeyboard.KeyboardModeChangeListener
 import com.example.hangulkeyboard.databinding.KeyboardHangulBinding
 
 @RequiresApi(Build.VERSION_CODES.S)
-class KeyboardKorean constructor(
+class KeyboardKorean(
     context: Context,
     layoutInflater: LayoutInflater,
     keyboardModeChangeListener: KeyboardModeChangeListener
@@ -132,7 +132,6 @@ class KeyboardKorean constructor(
     override fun clickBackspace() {
         TODO("clickBackspace")
     }
-
 
     override fun clickLanguage() {
         keyboardModeChangeListener.changeMode(KeyboardMode.ENGLISH)

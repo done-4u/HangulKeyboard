@@ -19,7 +19,7 @@ import com.example.hangulkeyboard.KeyboardMode
 import com.example.hangulkeyboard.KeyboardModeChangeListener
 
 @RequiresApi(Build.VERSION_CODES.S)
-abstract class AbstractKeyboardView constructor(
+abstract class AbstractKeyboardView(
     context: Context, protected val keyboardModeChangeListener: KeyboardModeChangeListener
 ) {
     // layout
@@ -39,7 +39,6 @@ abstract class AbstractKeyboardView constructor(
 
     /* Since Kotlin warns of using non-final properties in init, it cannot be inherited.
      * Instead, use below functions to initialize. */
-
     protected fun initializeAllButtons() {
         val buttonIterator = buttonSequence.iterator()
         val stringIterator = buttonStrings.iterator()
@@ -53,7 +52,6 @@ abstract class AbstractKeyboardView constructor(
 
     /* Inserting boiler-plate, repeated codes to bind views by View Binding is messy.
      * Use this function and loop to make code readable. */
-
     protected fun extractButtonFromKeyboardItem(v: View?): Button? = try {
         (v as ConstraintLayout).children.first() as Button
     } catch (e: ClassCastException) {
