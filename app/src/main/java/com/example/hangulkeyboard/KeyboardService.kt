@@ -11,8 +11,11 @@ import com.example.hangulkeyboard.keyboardview.KeyboardSpecial
 
 @RequiresApi(Build.VERSION_CODES.S)
 class KeyboardService : InputMethodService() {
+    var currentMode = KeyboardMode.ENGLISH
+
     private val keyboardModeChangeListener = object : KeyboardModeChangeListener {
         override fun changeMode(mode: KeyboardMode) {
+            currentMode = mode
             currentInputConnection.finishComposingText()
             modeKeyboardViewMap[mode]!!.inputConnection = currentInputConnection
             setInputView(modeKeyboardViewMap[mode]!!.root)
@@ -32,5 +35,14 @@ class KeyboardService : InputMethodService() {
         )
     }
 
-    override fun onCreateInputView(): View = modeKeyboardViewMap[KeyboardMode.ENGLISH]!!.root
+    override fun updateInputViewShown() {
+        super.updateInputViewShown()
+        keyboardModeChangeListener.changeMode(currentMode)
+    }
+
+    override fun onCreateInputView(): View {
+        val foo = modeKeyboardViewMap[currentMode]!!
+        foo.inputConnection = currentInputConnection
+        return foo.root
+    }
 }
