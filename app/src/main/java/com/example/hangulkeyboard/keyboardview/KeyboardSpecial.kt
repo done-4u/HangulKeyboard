@@ -19,20 +19,20 @@ class KeyboardSpecial(
 ) : AbstractKeyboardView(context, keyboardModeChangeListener) {
     override val associatedKeyboardBinding = KeyboardSymbolBinding.inflate(layoutInflater)
 
-    override val buttonStrings = listOf(
-        listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0"),
-        listOf(".", ",", "?", " ! ", ":"),
-        listOf("-", "_", "'", "\"", ";"),
-        listOf("↑", "@", "#", "%", "←"),
-        listOf("⊕", "(", "␣", ")", "↵")
+    override val buttonStrings = sequenceOf(
+        sequenceOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0"),
+        sequenceOf(".", ",", "?", " ! ", ":"),
+        sequenceOf("-", "_", "'", "\"", ";"),
+        sequenceOf("↑", "@", "#", "%", "←"),
+        sequenceOf("⊕", "(", "␣", ")", "↵")
     ).flatten()
 
-    private val buttonShiftStrings = listOf(
-        listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0"),
-        listOf("<", ">", "`", "&", "^"),
-        listOf(" + ", "*", "/", "~", "&"),
-        listOf("↑", "{", "=", "}", "←"),
-        listOf("⊕", "[", "␣", "]", "↵")
+    private val buttonShiftStrings = sequenceOf(
+        sequenceOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0"),
+        sequenceOf("<", ">", "`", "&", "^"),
+        sequenceOf(" + ", "*", "/", "~", "&"),
+        sequenceOf("↑", "{", "=", "}", "←"),
+        sequenceOf("⊕", "[", "␣", "]", "↵")
     ).flatten()
 
     override val buttonSequence: Sequence<Button> = sequenceOf(

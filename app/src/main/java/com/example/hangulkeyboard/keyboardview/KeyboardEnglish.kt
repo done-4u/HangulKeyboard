@@ -20,12 +20,12 @@ class KeyboardEnglish(
 ) : AbstractKeyboardView(context, keyboardModeChangeListener) {
     override val associatedKeyboardBinding = KeyboardAlphabetBinding.inflate(layoutInflater)
 
-    override val buttonStrings = listOf(
-        listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0"),
-        listOf("q", "w", "e", "r", "t", "y", "u", "i", "o", "p"),
-        listOf("a", "s", "d", "f", "g", "h", "j", "k", "l"),
-        listOf("↑", "z", "x", "c", "v", "b", "n", "m", "←"),
-        listOf("!#1", "⊕", ",", "␣", ".", "↵")
+    override val buttonStrings = sequenceOf(
+        sequenceOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0"),
+        sequenceOf("q", "w", "e", "r", "t", "y", "u", "i", "o", "p"),
+        sequenceOf("a", "s", "d", "f", "g", "h", "j", "k", "l"),
+        sequenceOf("↑", "z", "x", "c", "v", "b", "n", "m", "←"),
+        sequenceOf("!#1", "⊕", ",", "␣", ".", "↵")
     ).flatten()
 
     override val buttonSequence: Sequence<Button> = sequenceOf(
