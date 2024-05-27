@@ -30,7 +30,7 @@ class KeyboardSpecial(
     private val buttonShiftStrings = sequenceOf(
         sequenceOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0"),
         sequenceOf("<", ">", "`", "&", "^"),
-        sequenceOf(" + ", "*", "/", "~", "&"),
+        sequenceOf("+", "*", "/", "~", "&"),
         sequenceOf("↑", "{", "=", "}", "←"),
         sequenceOf("⊕", "[", "␣", "]", "↵")
     ).flatten()

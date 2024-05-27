@@ -22,7 +22,7 @@ enum class FunctionalKey {
             '⊕' -> LANGUAGE
             '␣' -> SPACE
             '↵' -> ENTER
-            '+' -> OTHER
+            'ㅿ' -> OTHER
             else -> NONE
         }
     }
