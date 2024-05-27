@@ -22,7 +22,7 @@ import com.example.hangulkeyboard.KeyboardModeChangeListener
 abstract class AbstractKeyboardView(
     context: Context, protected val keyboardModeChangeListener: KeyboardModeChangeListener
 ) {
-    // layout
+    // abstract values; hard-code these values to use protected methods
     protected abstract val associatedKeyboardBinding: ViewBinding
     protected abstract val buttonStrings: Sequence<String>
     protected abstract val buttonSequence: Sequence<Button>
@@ -50,8 +50,7 @@ abstract class AbstractKeyboardView(
         }
     }
 
-    /* Inserting boiler-plate, repeated codes to bind views by View Binding is messy.
-     * Use this function and loop to make code readable. */
+    // To avoid non-button components (e.g. spaces), we have to filter them by null.
     protected fun extractButtonFromKeyboardItem(v: View?): Button? = try {
         (v as ConstraintLayout).children.first() as Button
     } catch (e: ClassCastException) {

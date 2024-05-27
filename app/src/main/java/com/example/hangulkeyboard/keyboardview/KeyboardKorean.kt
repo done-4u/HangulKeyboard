@@ -101,8 +101,7 @@ class KeyboardKorean(
     }
 
 
-    override val associatedKeyboardBinding: KeyboardHangulBinding =
-        KeyboardHangulBinding.inflate(layoutInflater)
+    override val associatedKeyboardBinding = KeyboardHangulBinding.inflate(layoutInflater)
 
     override val buttonStrings = sequenceOf(
         sequenceOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0"),
