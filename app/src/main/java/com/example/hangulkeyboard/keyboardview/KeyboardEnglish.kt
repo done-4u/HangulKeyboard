@@ -3,9 +3,7 @@ package com.example.hangulkeyboard.keyboardview
 import android.content.Context
 import android.os.Build
 import android.view.LayoutInflater
-import android.view.View
 import android.widget.Button
-import android.widget.LinearLayout
 import androidx.annotation.RequiresApi
 import androidx.core.view.children
 import com.example.hangulkeyboard.KeyboardMode
@@ -34,8 +32,7 @@ class KeyboardEnglish(
         associatedKeyboardBinding.alphabetSecondLine,
         associatedKeyboardBinding.alphabetThirdLine,
         associatedKeyboardBinding.alphabetFourthLine
-    ).map { line: LinearLayout -> line.children }.flatten()
-        .map { v: View -> extractButtonFromKeyboardItem(v) }.filterNotNull()
+    ).map { it.children }.flatten().map { extractButtonFromKeyboardItem(it) }.filterNotNull()
 
     init {
         initializeAllButtons()

@@ -117,8 +117,7 @@ class KeyboardKorean(
         associatedKeyboardBinding.hangulSecondLine,
         associatedKeyboardBinding.hangulThirdLine,
         associatedKeyboardBinding.hangulFourthLine
-    ).map { line: LinearLayout -> line.children }.flatten()
-        .map { v: View -> extractButtonFromKeyboardItem(v) }.filterNotNull()
+    ).map { it.children }.flatten().map { extractButtonFromKeyboardItem(it) }.filterNotNull()
 
     init {
         initializeAllButtons()
