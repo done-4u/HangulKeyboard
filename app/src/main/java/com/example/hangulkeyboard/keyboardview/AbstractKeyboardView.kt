@@ -4,8 +4,10 @@ import android.content.Context
 import android.media.AudioManager
 import android.os.Build
 import android.os.CombinedVibration
+import android.os.SystemClock
 import android.os.VibrationEffect
 import android.os.VibratorManager
+import android.view.KeyEvent
 import android.view.View
 import android.view.View.OnClickListener
 import android.view.inputmethod.InputConnection
@@ -101,7 +103,18 @@ abstract class AbstractKeyboardView(
     }
 
     protected open fun clickEnter() {
-        inputConnection.commitText("\n", 1)
+        val t = SystemClock.uptimeMillis()
+        inputConnection.sendKeyEvent(
+            KeyEvent(
+                t, t, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER, 0
+            )
+        )
+        inputConnection.sendKeyEvent(
+            KeyEvent(
+                t, t, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER, 0
+            )
+
+        )
     }
 
     protected open fun clickOther() {}
