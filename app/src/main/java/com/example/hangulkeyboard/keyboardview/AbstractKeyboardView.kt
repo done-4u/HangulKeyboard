@@ -87,7 +87,7 @@ abstract class AbstractKeyboardView(
     protected open fun clickShift() {}
 
     protected open fun clickBackspace() {
-        inputConnection.deleteSurroundingTextInCodePoints(1, 0)
+        inputConnection.deleteSurroundingText(1, 0)
     }
 
     protected open fun clickSpecial() {
