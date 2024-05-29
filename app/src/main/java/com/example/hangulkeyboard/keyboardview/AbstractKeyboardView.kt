@@ -113,7 +113,6 @@ abstract class AbstractKeyboardView(
             KeyEvent(
                 t, t, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER, 0
             )
-
         )
     }
 
