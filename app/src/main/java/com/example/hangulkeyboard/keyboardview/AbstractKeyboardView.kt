@@ -85,20 +85,18 @@ abstract class AbstractKeyboardView(
         }
     }
 
-    protected open fun clickShift() {}
+    protected abstract fun clickShift()
 
     protected open fun clickBackspace() {
         inputConnection.deleteSurroundingText(1, 0)
     }
 
-    protected open fun clickSpecial() {
+    private fun clickSpecial() {
         KeyboardSpecial.returningMode = mode
         keyboardModeChangeListener.changeMode(KeyboardMode.SPECIAL)
     }
 
-    protected open fun clickLanguage() {
-        keyboardModeChangeListener.changeMode(KeyboardMode.ENGLISH)
-    }
+    protected abstract fun clickLanguage()
 
     protected open fun clickSpace() {
         inputConnection.commitText(" ", 1)
