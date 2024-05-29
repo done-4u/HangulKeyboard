@@ -74,12 +74,12 @@ class KeyboardEnglish(
             field = value
         }
 
-    override fun clickLanguage() {
-        keyboardModeChangeListener.changeMode(KeyboardMode.KOREAN)
-    }
-
     override fun clickShift() {
         capsMode = capsMode.next()
+    }
+
+    override fun clickLanguage() {
+        keyboardModeChangeListener.changeMode(KeyboardMode.KOREAN)
     }
 
     override fun clickGeneral(keyText: CharSequence) {
