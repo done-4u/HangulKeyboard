@@ -17,6 +17,7 @@ class KeyboardEnglish(
     keyboardModeChangeListener: KeyboardModeChangeListener
 ) : AbstractKeyboardView(context, keyboardModeChangeListener) {
     override val associatedKeyboardBinding = KeyboardAlphabetBinding.inflate(layoutInflater)
+    override val mode = KeyboardMode.ENGLISH
 
     override val buttonStrings = sequenceOf(
         sequenceOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0"),

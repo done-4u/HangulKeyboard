@@ -26,6 +26,7 @@ abstract class AbstractKeyboardView(
 ) {
     // abstract values; hard-code these values to use protected methods
     protected abstract val associatedKeyboardBinding: ViewBinding
+    protected abstract val mode: KeyboardMode
     protected abstract val buttonStrings: Sequence<String>
     protected abstract val buttonSequence: Sequence<Button>
 
@@ -91,6 +92,7 @@ abstract class AbstractKeyboardView(
     }
 
     protected open fun clickSpecial() {
+        KeyboardSpecial.returningMode = mode
         keyboardModeChangeListener.changeMode(KeyboardMode.SPECIAL)
     }
 

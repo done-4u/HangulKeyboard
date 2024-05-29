@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.widget.Button
 import androidx.annotation.RequiresApi
 import androidx.core.view.children
+import com.example.hangulkeyboard.KeyboardMode
 import com.example.hangulkeyboard.KeyboardModeChangeListener
 import com.example.hangulkeyboard.databinding.KeyboardSymbolBinding
 
@@ -16,6 +17,7 @@ class KeyboardSpecial(
     keyboardModeChangeListener: KeyboardModeChangeListener
 ) : AbstractKeyboardView(context, keyboardModeChangeListener) {
     override val associatedKeyboardBinding = KeyboardSymbolBinding.inflate(layoutInflater)
+    override val mode = KeyboardMode.SPECIAL
 
     override val buttonStrings = sequenceOf(
         sequenceOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0"),
@@ -59,5 +61,13 @@ class KeyboardSpecial(
 
     override fun clickShift() {
         isOnShift = !isOnShift
+    }
+
+    override fun clickLanguage() {
+        keyboardModeChangeListener.changeMode(returningMode)
+    }
+
+    companion object {
+        var returningMode = KeyboardMode.ENGLISH
     }
 }
