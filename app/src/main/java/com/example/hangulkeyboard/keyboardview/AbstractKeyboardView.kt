@@ -88,7 +88,17 @@ abstract class AbstractKeyboardView(
     protected abstract fun clickShift()
 
     protected open fun clickBackspace() {
-        inputConnection.deleteSurroundingTextInCodePoints(1, 0)
+        val t = SystemClock.uptimeMillis()
+        inputConnection.sendKeyEvent(
+            KeyEvent(
+                t, t, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DEL, 0
+            )
+        )
+        inputConnection.sendKeyEvent(
+            KeyEvent(
+                t, t, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DEL, 0
+            )
+        )
     }
 
     private fun clickSpecial() {
