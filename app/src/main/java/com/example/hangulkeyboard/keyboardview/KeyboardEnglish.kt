@@ -24,7 +24,7 @@ class KeyboardEnglish(
         sequenceOf("q", "w", "e", "r", "t", "y", "u", "i", "o", "p"),
         sequenceOf("a", "s", "d", "f", "g", "h", "j", "k", "l"),
         sequenceOf("↑", "z", "x", "c", "v", "b", "n", "m", "←"),
-        sequenceOf("!#1", "⊕", ",", "␣", ".", "↵")
+        sequenceOf("!@#", "⊕", ",", "␣", ".", "↵")
     ).flatten()
 
     override val buttonSequence: Sequence<Button> = sequenceOf(

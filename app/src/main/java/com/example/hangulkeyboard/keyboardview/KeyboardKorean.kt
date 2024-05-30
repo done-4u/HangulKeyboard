@@ -109,7 +109,7 @@ class KeyboardKorean(
         sequenceOf("ㅣ", "ㆍ", "ㅡ", "←"),
         sequenceOf("ㄱ", "ㄴ", "ㄹ", "␣"),
         sequenceOf("ㅁ", "ㅅ", "ㅇ", "↑", "ㅿ"),
-        sequenceOf("!#1", "⊕", ".", ",", "?", " ! ", "↵")
+        sequenceOf("!@#", "⊕", ".", ",", "?", " ! ", "↵")
     ).flatten()
 
     override val buttonSequence: Sequence<Button> = sequenceOf(
