@@ -35,14 +35,37 @@ class KeyboardService : InputMethodService() {
         )
     }
 
+    private fun getCurrentView(): AbstractKeyboardView {
+        return modeKeyboardViewMap[currentMode]!!
+    }
+
     override fun updateInputViewShown() {
         super.updateInputViewShown()
         keyboardModeChangeListener.changeMode(currentMode)
     }
 
     override fun onCreateInputView(): View {
-        val foo = modeKeyboardViewMap[currentMode]!!
+        val foo = getCurrentView()
         foo.inputConnection = currentInputConnection
         return foo.root
+    }
+
+    override fun onUpdateSelection(
+        oldSelStart: Int,
+        oldSelEnd: Int,
+        newSelStart: Int,
+        newSelEnd: Int,
+        candidatesStart: Int,
+        candidatesEnd: Int
+    ) {
+        super.onUpdateSelection(
+            oldSelStart,
+            oldSelEnd,
+            newSelStart,
+            newSelEnd,
+            candidatesStart,
+            candidatesEnd
+        )
+        getCurrentView().onUpdateSelection()
     }
 }

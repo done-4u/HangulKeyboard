@@ -2,10 +2,9 @@ package com.example.hangulkeyboard.keyboardview
 
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import android.view.LayoutInflater
-import android.view.View
 import android.widget.Button
-import android.widget.LinearLayout
 import androidx.annotation.RequiresApi
 import androidx.core.view.children
 import com.example.hangulkeyboard.KeyboardMode
@@ -18,89 +17,6 @@ class KeyboardKorean(
     layoutInflater: LayoutInflater,
     keyboardModeChangeListener: KeyboardModeChangeListener
 ) : AbstractKeyboardView(context, keyboardModeChangeListener) {
-
-    private class HangulChar {
-        private enum class State { NONE, SOLE_CONSONANT, SOLE_VOWEL, NO_FINAL, FULL }
-
-        var state: State = State.NONE
-        var initialConsonant: Char? = null
-        var medialVowel: Char? = null
-        var finalConsonant: Char? = null
-
-        val doubleFinalConsonantMap = mapOf(
-            'ㄱ' to mapOf('ㅅ' to 'ㄳ'), 'ㄴ' to mapOf('ㅈ' to 'ㄵ', 'ㅎ' to 'ㄶ'), 'ㄹ' to mapOf(
-                'ㄱ' to 'ㄺ', 'ㅁ' to 'ㄻ', 'ㅂ' to 'ㄼ', 'ㅅ' to 'ㄽ', 'ㅌ' to 'ㄾ', 'ㅍ' to 'ㄿ', 'ㅎ' to 'ㅀ'
-            ), 'ㅂ' to mapOf('ㅅ' to 'ㅄ')
-        )
-
-        fun reflex() {
-            // updating state
-            state = if (finalConsonant == null) {
-                if (initialConsonant == null) {
-                    if (medialVowel == null) State.NONE
-                    else State.SOLE_VOWEL
-                } else {
-                    if (medialVowel == null) State.SOLE_CONSONANT
-                    else State.NO_FINAL
-                }
-            } else {
-                if (initialConsonant == null || medialVowel == null) throw IllegalStateException()
-                else State.FULL
-            }
-
-            // assembling phonemes
-            val assembled: Char? = when (state) {
-                State.NONE -> null
-                State.SOLE_CONSONANT -> initialConsonant
-                State.SOLE_VOWEL -> medialVowel
-                else -> TODO("Not implemented yet")
-            }
-        }
-
-        fun addConsonant(consonant: Char) {
-            when (state) {
-                State.NONE -> initialConsonant = consonant
-                State.SOLE_CONSONANT, State.SOLE_VOWEL -> {
-                    commit()
-                    initialConsonant = consonant
-                }
-
-                State.NO_FINAL -> finalConsonant = consonant
-                State.FULL -> {
-                    if (doubleFinalConsonantMap.containsKey(finalConsonant)) {
-                        if (doubleFinalConsonantMap[finalConsonant]!!.containsKey(consonant)) {
-                            finalConsonant = doubleFinalConsonantMap[finalConsonant]!![consonant]
-                        } else {
-                            commit()
-                            initialConsonant = consonant
-                        }
-                    } else {
-                        commit()
-                        initialConsonant = consonant
-                    }
-                }
-            }
-        }
-
-        fun addVowel(vowel: Char) {
-            when (state) {
-                State.NONE, State.SOLE_CONSONANT -> medialVowel = vowel
-                State.SOLE_VOWEL, State.NO_FINAL, State.FULL -> {
-                    commit()
-                    initialConsonant = vowel
-                }
-            }
-        }
-
-        fun commit() {
-            TODO("not implemented yet")
-            initialConsonant = null
-            medialVowel = null
-            finalConsonant = null
-        }
-    }
-
-
     override val associatedKeyboardBinding = KeyboardHangulBinding.inflate(layoutInflater)
     override val mode = KeyboardMode.KOREAN
 
@@ -124,19 +40,186 @@ class KeyboardKorean(
         initializeAllButtons()
     }
 
+    // information of composing text
+    // since their internal attributes change, not themselves, reflex by setter is not helpful
+    private enum class ComposingState { NONE, SOLE, BOTH }
+
+    private var composingState = ComposingState.NONE
+    private var prevHangulChar: HangulChar? = null
+    private var currHangulChar = HangulChar()
+
+    // DO NOT forget to call this whenever you affect composing characters!!
+    private fun reflex() {
+        composingState = if (prevHangulChar == null) {
+            if (currHangulChar.isNull()) {
+                ComposingState.NONE
+            } else {
+                ComposingState.SOLE
+            }
+        } else {
+            assert(!prevHangulChar!!.isNull())
+            if (currHangulChar.isNull()) {
+                Log.d("composition reflex", "CAUTION! PULLED CURR")
+                currHangulChar = prevHangulChar!!
+                prevHangulChar = null
+                ComposingState.SOLE
+            } else {
+                ComposingState.BOTH
+            }
+        }
+    }
+
+    // to ignore OnUpdate (for proper reset of composingState)
+    private var ignoreOnUpdateOnce = true
+        set(value) {
+            Log.d("update selection", "set-ignore: $value")
+            field = value
+        }
+
+    private fun compose() {
+        val text = when (composingState) {
+            ComposingState.NONE -> ""
+            ComposingState.SOLE -> currHangulChar.toString()
+            ComposingState.BOTH -> prevHangulChar!!.toChar()!! + currHangulChar.toString()
+        }
+        inputConnection!!.setComposingText(text, 1)
+    }
+
+    private fun reflexAndCompose() {
+        reflex()
+        compose()
+    }
+
+    private fun resetComposition() {
+        prevHangulChar = null
+        currHangulChar = HangulChar()
+        reflexAndCompose()
+    }
+
+    // finishComposingText MUST be called through this method
+    private fun finishComposition() {
+        inputConnection!!.finishComposingText()
+        prevHangulChar = null
+        currHangulChar = HangulChar()
+        reflex()
+    }
+
+    private fun commitPrev() {
+        inputConnection!!.commitText(prevHangulChar!!.toString(), 1)
+        prevHangulChar = null
+        reflex()
+    }
+
+    override fun onInputConnectionSet() {
+        ignoreOnUpdateOnce = true
+        resetComposition()
+    }
+
+    override fun onUpdateSelection() {
+        Log.d("update selection", "onUpdateSelection()")
+        if (ignoreOnUpdateOnce) {
+            Log.d("update selection", "ignored!")
+            ignoreOnUpdateOnce = false
+        } else {
+            Log.d("update selection", "finish composition")
+            finishComposition()
+        }
+    }
+
     override fun clickShift() {
-        TODO("clickShift")
+        currHangulChar.double()
+        reflexAndCompose()
     }
 
     override fun clickBackspace() {
-        TODO("clickBackspace")
+        when (composingState) {
+            ComposingState.NONE -> super.clickBackspace()
+            ComposingState.SOLE, ComposingState.BOTH -> currHangulChar.erase()
+        }
+
+        reflexAndCompose()
+    }
+
+    override fun clickSpecial() {
+        finishComposition()
+        super.clickSpecial()
     }
 
     override fun clickLanguage() {
+        finishComposition()
         keyboardModeChangeListener.changeMode(KeyboardMode.ENGLISH)
     }
 
+    override fun clickSpace() {
+        ignoreOnUpdateOnce = true
+        if (composingState == ComposingState.NONE) {
+            super.clickSpace()
+        } else {
+            finishComposition()
+        }
+    }
+
     override fun clickOther() {
-        TODO("clickOther")
+        currHangulChar.stroke()
+        reflexAndCompose()
+    }
+
+    override fun clickGeneral(keyText: CharSequence) {
+        assert(keyText.length == 1)
+        val phoneme = keyText[0]
+
+        assert(inputConnection!!.beginBatchEdit())
+
+        val addOverflow = currHangulChar.addAtomicPhoneme(phoneme)
+        reflex()
+        assert(composingState != ComposingState.NONE)
+
+        // below control-flow can be shortened, but intentionally did not for easy understanding
+        if (addOverflow == null) {
+            if (composingState == ComposingState.SOLE) {
+                // "" + ㅅ -> ㅅ
+                // 갑 + ㅅ -> 값
+                compose()
+            } else {
+                assert(composingState == ComposingState.BOTH)
+                // 난ㅇ + ㅣ -> 난이
+                val phonemeCurr = currHangulChar.toPhoneme()
+                if (phonemeCurr != null) {
+                    if (currHangulChar.absorbFinalConsonant(prevHangulChar!!)) {
+                        // 괄ㆍ + ㅡ -> 과로
+                        // 맔ㆍ + ㅡ -> 말소
+                        commitPrev()
+                        compose()
+                    } else {
+                        // ㅁㆍ + ㅣ -> 머
+                        assert(prevHangulChar!!.vowelPermeate(phoneme))
+                    }
+                }
+            }
+        } else if (addOverflow.connected) {
+            if (composingState == ComposingState.SOLE) {
+                // 난 + ㅇ -> 난ㅇ
+                prevHangulChar = addOverflow.prev
+                reflexAndCompose()
+            } else {
+                assert(composingState == ComposingState.BOTH)
+                // 언ㅅ + ㆍ  -> 언/ㅅㆍ
+                commitPrev()
+                prevHangulChar = addOverflow.prev
+                reflexAndCompose()
+            }
+        } else {
+            // 각 + ㅁ -> 각/ㅁ
+            // 앙 + ㅣ -> 아/이
+            // 난ㅇ + ㄱ -> 난ㅇㄱ
+            val foo = currHangulChar
+            currHangulChar = addOverflow.prev
+            finishComposition()
+            currHangulChar = foo
+            reflexAndCompose()
+        }
+
+        ignoreOnUpdateOnce = true
+        inputConnection!!.endBatchEdit()
     }
 }

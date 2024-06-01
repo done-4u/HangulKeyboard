@@ -31,7 +31,12 @@ abstract class AbstractKeyboardView(
     protected abstract val buttonSequence: Sequence<Button>
 
     // input connection and layout
-    lateinit var inputConnection: InputConnection
+    protected open fun onInputConnectionSet() {}
+    var inputConnection: InputConnection? = null
+        set(value) {
+            field = value
+            onInputConnectionSet()
+        }
     val root: LinearLayout by lazy { associatedKeyboardBinding.root as LinearLayout }
 
     // audio, vibration
@@ -85,23 +90,25 @@ abstract class AbstractKeyboardView(
         }
     }
 
+    open fun onUpdateSelection() {}
+
     protected abstract fun clickShift()
 
     protected open fun clickBackspace() {
         val t = SystemClock.uptimeMillis()
-        inputConnection.sendKeyEvent(
+        inputConnection!!.sendKeyEvent(
             KeyEvent(
                 t, t, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DEL, 0
             )
         )
-        inputConnection.sendKeyEvent(
+        inputConnection!!.sendKeyEvent(
             KeyEvent(
                 t, t, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DEL, 0
             )
         )
     }
 
-    private fun clickSpecial() {
+    protected open fun clickSpecial() {
         KeyboardSpecial.returningMode = mode
         keyboardModeChangeListener.changeMode(KeyboardMode.SPECIAL)
     }
@@ -109,17 +116,17 @@ abstract class AbstractKeyboardView(
     protected abstract fun clickLanguage()
 
     protected open fun clickSpace() {
-        inputConnection.commitText(" ", 1)
+        inputConnection!!.commitText(" ", 1)
     }
 
     protected open fun clickEnter() {
         val t = SystemClock.uptimeMillis()
-        inputConnection.sendKeyEvent(
+        inputConnection!!.sendKeyEvent(
             KeyEvent(
                 t, t, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER, 0
             )
         )
-        inputConnection.sendKeyEvent(
+        inputConnection!!.sendKeyEvent(
             KeyEvent(
                 t, t, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER, 0
             )
@@ -130,6 +137,6 @@ abstract class AbstractKeyboardView(
 
     protected open fun clickGeneral(keyText: CharSequence) {
         assert(keyText.length == 1)
-        inputConnection.commitText(keyText, 1)
+        inputConnection!!.commitText(keyText, 1)
     }
 }
