@@ -1,29 +1,24 @@
 package com.example.hangulkeyboard
 
 import android.inputmethodservice.InputMethodService
-import android.os.Build
 import android.view.View
-import androidx.annotation.RequiresApi
 import com.example.hangulkeyboard.keyboardview.AbstractKeyboardView
 import com.example.hangulkeyboard.keyboardview.KeyboardEnglish
 import com.example.hangulkeyboard.keyboardview.KeyboardKorean
 import com.example.hangulkeyboard.keyboardview.KeyboardSpecial
 
-@RequiresApi(Build.VERSION_CODES.S)
 class KeyboardService : InputMethodService() {
     private var currentMode = KeyboardMode.ENGLISH
 
-    private val keyboardModeChangeListener = object : KeyboardModeChangeListener {
-        override fun changeMode(mode: KeyboardMode) {
-            if (mode == KeyboardMode.SPECIAL) {
-                (modeKeyboardViewMap[KeyboardMode.SPECIAL] as KeyboardSpecial).returningMode = currentMode
-            }
-            currentMode = mode
-            currentInputConnection?.finishComposingText()
-            val keyboard = modeKeyboardViewMap[mode] ?: return
-            keyboard.inputConnection = currentInputConnection
-            setInputView(keyboard.root)
+    private val keyboardModeChangeListener = KeyboardModeChangeListener { mode ->
+        if (mode == KeyboardMode.SPECIAL) {
+            (modeKeyboardViewMap[KeyboardMode.SPECIAL] as KeyboardSpecial).returningMode = currentMode
         }
+        currentMode = mode
+        currentInputConnection?.finishComposingText()
+        val keyboard = modeKeyboardViewMap[mode] ?: return@KeyboardModeChangeListener
+        keyboard.inputConnection = currentInputConnection
+        setInputView(keyboard.root)
     }
 
     // lazy loading is needed to prevent NullPointerException from applicationContext
@@ -40,7 +35,7 @@ class KeyboardService : InputMethodService() {
     }
 
     private fun getCurrentView(): AbstractKeyboardView {
-        return modeKeyboardViewMap[currentMode]!!
+        return modeKeyboardViewMap[currentMode] ?: error("No keyboard for mode $currentMode")
     }
 
     override fun updateInputViewShown() {

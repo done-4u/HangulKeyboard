@@ -1,5 +1,5 @@
 package com.example.hangulkeyboard
 
-interface KeyboardModeChangeListener {
+fun interface KeyboardModeChangeListener {
     fun changeMode(mode: KeyboardMode)
 }
