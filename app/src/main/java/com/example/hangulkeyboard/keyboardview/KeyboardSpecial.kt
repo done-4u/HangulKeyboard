@@ -1,25 +1,21 @@
 package com.example.hangulkeyboard.keyboardview
 
 import android.content.Context
-import android.os.Build
 import android.view.LayoutInflater
 import android.widget.Button
-import androidx.annotation.RequiresApi
 import androidx.core.view.children
 import com.example.hangulkeyboard.KeyboardMode
 import com.example.hangulkeyboard.KeyboardModeChangeListener
 import com.example.hangulkeyboard.databinding.KeyboardSymbolBinding
 
-@RequiresApi(Build.VERSION_CODES.S)
 class KeyboardSpecial(
     context: Context,
     layoutInflater: LayoutInflater,
     keyboardModeChangeListener: KeyboardModeChangeListener
 ) : AbstractKeyboardView(context, keyboardModeChangeListener) {
     override val associatedKeyboardBinding = KeyboardSymbolBinding.inflate(layoutInflater)
-    override val mode = KeyboardMode.SPECIAL
 
-    override val buttonStrings = sequenceOf(
+    private val buttonStrings = sequenceOf(
         sequenceOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0"),
         sequenceOf(".", ",", "?", "!", ":"),
         sequenceOf("-", "_", "'", "\"", ";"),
@@ -44,17 +40,17 @@ class KeyboardSpecial(
     ).flatMap { it.children }.mapNotNull { extractButtonFromKeyboardItem(it) }
 
     init {
-        initializeAllButtons()
+        initializeAllButtons(buttonStrings)
     }
+
+    private val cachedButtons: List<Button> by lazy { buttonSequence.toList() }
 
     private var isOnShift = false
         set(value) {
-            val buttonIterator = buttonSequence.iterator()
             val stringIterator =
                 if (value) buttonShiftStrings.iterator() else buttonStrings.iterator()
-            while (buttonIterator.hasNext()) {
-                assert(stringIterator.hasNext())
-                buttonIterator.next().text = stringIterator.next()
+            for (button in cachedButtons) {
+                button.text = stringIterator.next()
             }
             field = value
         }

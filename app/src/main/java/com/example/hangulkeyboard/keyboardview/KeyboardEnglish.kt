@@ -1,31 +1,19 @@
 package com.example.hangulkeyboard.keyboardview
 
 import android.content.Context
-import android.os.Build
 import android.view.LayoutInflater
 import android.widget.Button
-import androidx.annotation.RequiresApi
 import androidx.core.view.children
 import com.example.hangulkeyboard.KeyboardMode
 import com.example.hangulkeyboard.KeyboardModeChangeListener
 import com.example.hangulkeyboard.databinding.KeyboardAlphabetBinding
 
-@RequiresApi(Build.VERSION_CODES.S)
 class KeyboardEnglish(
     context: Context,
     layoutInflater: LayoutInflater,
     keyboardModeChangeListener: KeyboardModeChangeListener
 ) : AbstractKeyboardView(context, keyboardModeChangeListener) {
     override val associatedKeyboardBinding = KeyboardAlphabetBinding.inflate(layoutInflater)
-    override val mode = KeyboardMode.ENGLISH
-
-    override val buttonStrings = sequenceOf(
-        sequenceOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0"),
-        sequenceOf("q", "w", "e", "r", "t", "y", "u", "i", "o", "p"),
-        sequenceOf("a", "s", "d", "f", "g", "h", "j", "k", "l"),
-        sequenceOf("↑", "z", "x", "c", "v", "b", "n", "m", "←"),
-        sequenceOf("!@#", "⊕", ",", "␣", ".", "↵")
-    ).flatten()
 
     override val buttonSequence: Sequence<Button> = sequenceOf(
         associatedKeyboardBinding.alphabetNumpad,
@@ -36,7 +24,15 @@ class KeyboardEnglish(
     ).map { it.children }.flatten().map { extractButtonFromKeyboardItem(it) }.filterNotNull()
 
     init {
-        initializeAllButtons()
+        initializeAllButtons(
+            sequenceOf(
+                sequenceOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0"),
+                sequenceOf("q", "w", "e", "r", "t", "y", "u", "i", "o", "p"),
+                sequenceOf("a", "s", "d", "f", "g", "h", "j", "k", "l"),
+                sequenceOf("↑", "z", "x", "c", "v", "b", "n", "m", "←"),
+                sequenceOf("!@#", "⊕", ",", "␣", ".", "↵")
+            ).flatten()
+        )
     }
 
     private enum class CapsMode {

@@ -2,7 +2,6 @@ package com.example.hangulkeyboard.keyboardview
 
 import android.content.Context
 import android.media.AudioManager
-import android.os.Build
 import android.os.CombinedVibration
 import android.os.SystemClock
 import android.os.VibrationEffect
@@ -13,21 +12,17 @@ import android.view.View.OnClickListener
 import android.view.inputmethod.InputConnection
 import android.widget.Button
 import android.widget.LinearLayout
-import androidx.annotation.RequiresApi
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.children
 import androidx.viewbinding.ViewBinding
 import com.example.hangulkeyboard.KeyboardMode
 import com.example.hangulkeyboard.KeyboardModeChangeListener
 
-@RequiresApi(Build.VERSION_CODES.S)
 abstract class AbstractKeyboardView(
     context: Context, protected val keyboardModeChangeListener: KeyboardModeChangeListener
 ) {
     // abstract values; hard-code these values to use protected methods
     protected abstract val associatedKeyboardBinding: ViewBinding
-    protected abstract val mode: KeyboardMode
-    protected abstract val buttonStrings: Sequence<String>
     protected abstract val buttonSequence: Sequence<Button>
 
     // input connection and layout
@@ -37,6 +32,8 @@ abstract class AbstractKeyboardView(
             field = value
             onInputConnectionSet()
         }
+    protected val ic: InputConnection
+        get() = inputConnection ?: error("InputConnection is not set")
     val root: LinearLayout by lazy { associatedKeyboardBinding.root as LinearLayout }
 
     // audio, vibration
@@ -47,11 +44,11 @@ abstract class AbstractKeyboardView(
 
     /* Kotlin warns of using non-final properties in init to keep its initialization order.
      * Make sure to use below functions to initialize. */
-    protected fun initializeAllButtons() {
+    protected fun initializeAllButtons(buttonStrings: Sequence<String>) {
         val buttonIterator = buttonSequence.iterator()
         val stringIterator = buttonStrings.iterator()
         while (buttonIterator.hasNext()) {
-            assert(stringIterator.hasNext())
+            check(stringIterator.hasNext()) { "buttonStrings has fewer items than buttonSequence" }
             val button = buttonIterator.next()
             val str = stringIterator.next()
             button.text = str
@@ -94,16 +91,8 @@ abstract class AbstractKeyboardView(
 
     protected open fun clickBackspace() {
         val t = SystemClock.uptimeMillis()
-        inputConnection!!.sendKeyEvent(
-            KeyEvent(
-                t, t, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DEL, 0
-            )
-        )
-        inputConnection!!.sendKeyEvent(
-            KeyEvent(
-                t, t, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DEL, 0
-            )
-        )
+        ic.sendKeyEvent(KeyEvent(t, t, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DEL, 0))
+        ic.sendKeyEvent(KeyEvent(t, t, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DEL, 0))
     }
 
     protected open fun clickSpecial() {
@@ -113,27 +102,19 @@ abstract class AbstractKeyboardView(
     protected abstract fun clickLanguage()
 
     protected open fun clickSpace() {
-        inputConnection!!.commitText(" ", 1)
+        ic.commitText(" ", 1)
     }
 
     protected open fun clickEnter() {
         val t = SystemClock.uptimeMillis()
-        inputConnection!!.sendKeyEvent(
-            KeyEvent(
-                t, t, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER, 0
-            )
-        )
-        inputConnection!!.sendKeyEvent(
-            KeyEvent(
-                t, t, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER, 0
-            )
-        )
+        ic.sendKeyEvent(KeyEvent(t, t, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER, 0))
+        ic.sendKeyEvent(KeyEvent(t, t, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER, 0))
     }
 
     protected open fun clickOther() {}
 
     protected open fun clickGeneral(keyText: CharSequence) {
-        assert(keyText.length == 1)
-        inputConnection!!.commitText(keyText, 1)
+        require(keyText.length == 1) { "keyText must be a single character" }
+        ic.commitText(keyText, 1)
     }
 }
