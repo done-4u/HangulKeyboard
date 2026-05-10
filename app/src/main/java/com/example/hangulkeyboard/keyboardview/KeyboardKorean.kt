@@ -1,31 +1,19 @@
 package com.example.hangulkeyboard.keyboardview
 
 import android.content.Context
-import android.os.Build
 import android.view.LayoutInflater
 import android.widget.Button
-import androidx.annotation.RequiresApi
 import androidx.core.view.children
 import com.example.hangulkeyboard.KeyboardMode
 import com.example.hangulkeyboard.KeyboardModeChangeListener
 import com.example.hangulkeyboard.databinding.KeyboardHangulBinding
 
-@RequiresApi(Build.VERSION_CODES.S)
 class KeyboardKorean(
     context: Context,
     layoutInflater: LayoutInflater,
     keyboardModeChangeListener: KeyboardModeChangeListener
 ) : AbstractKeyboardView(context, keyboardModeChangeListener) {
     override val associatedKeyboardBinding = KeyboardHangulBinding.inflate(layoutInflater)
-    override val mode = KeyboardMode.KOREAN
-
-    override val buttonStrings = sequenceOf(
-        sequenceOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0"),
-        sequenceOf("ㅣ", "ㆍ", "ㅡ", "←"),
-        sequenceOf("ㄱ", "ㄴ", "ㄹ", "␣"),
-        sequenceOf("ㅁ", "ㅅ", "ㅇ", "↑", "ㅿ"),
-        sequenceOf("!@#", "⊕", ".", ",", "?", "!", "↵")
-    ).flatten()
 
     override val buttonSequence: Sequence<Button> = sequenceOf(
         associatedKeyboardBinding.hangulNumpad,
@@ -36,11 +24,19 @@ class KeyboardKorean(
     ).map { it.children }.flatten().map { extractButtonFromKeyboardItem(it) }.filterNotNull()
 
     init {
-        initializeAllButtons()
+        initializeAllButtons(
+            sequenceOf(
+                sequenceOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0"),
+                sequenceOf("ㅣ", "ㆍ", "ㅡ", "←"),
+                sequenceOf("ㄱ", "ㄴ", "ㄹ", "␣"),
+                sequenceOf("ㅁ", "ㅅ", "ㅇ", "↑", "ㅿ"),
+                sequenceOf("!@#", "⊕", ".", ",", "?", "!", "↵")
+            ).flatten()
+        )
     }
 
     // information of composing text
-    // since their internal attributes change, not themselves, reflex by setter is not helpful
+    // since their internal attributes change, not themselves, syncState by setter is not helpful
     private enum class ComposingState { NONE, SOLE, BOTH }
 
     private var composingState = ComposingState.NONE
@@ -48,7 +44,7 @@ class KeyboardKorean(
     private var currHangulChar = HangulChar()
 
     // DO NOT forget to call this whenever you affect composing characters!!
-    private fun reflex() {
+    private fun syncState() {
         composingState = if (prevHangulChar == null) {
             if (currHangulChar.isNull()) {
                 ComposingState.NONE
@@ -56,7 +52,7 @@ class KeyboardKorean(
                 ComposingState.SOLE
             }
         } else {
-            assert(!prevHangulChar!!.isNull())
+            check(!prevHangulChar!!.isNull()) { "prevHangulChar must not be in empty state" }
             if (currHangulChar.isNull()) {
                 currHangulChar = prevHangulChar!!
                 prevHangulChar = null
@@ -74,34 +70,34 @@ class KeyboardKorean(
         val text = when (composingState) {
             ComposingState.NONE -> ""
             ComposingState.SOLE -> currHangulChar.toString()
-            ComposingState.BOTH -> prevHangulChar!!.toChar()!! + currHangulChar.toString()
+            ComposingState.BOTH -> prevHangulChar!!.toString() + currHangulChar.toString()
         }
-        inputConnection!!.setComposingText(text, 1)
+        ic.setComposingText(text, 1)
     }
 
-    private fun reflexAndCompose() {
-        reflex()
+    private fun syncStateAndCompose() {
+        syncState()
         compose()
     }
 
     private fun resetComposition() {
         prevHangulChar = null
         currHangulChar = HangulChar()
-        reflexAndCompose()
+        syncStateAndCompose()
     }
 
     // finishComposingText MUST be called through this method
     private fun finishComposition() {
-        inputConnection!!.finishComposingText()
+        ic.finishComposingText()
         prevHangulChar = null
         currHangulChar = HangulChar()
-        reflex()
+        syncState()
     }
 
     private fun commitPrev() {
-        inputConnection!!.commitText(prevHangulChar!!.toString(), 1)
+        ic.commitText(prevHangulChar!!.toString(), 1)
         prevHangulChar = null
-        reflex()
+        syncState()
     }
 
     override fun onInputConnectionSet() {
@@ -117,18 +113,20 @@ class KeyboardKorean(
         }
     }
 
-    override fun clickShift() {
-        val overflow = currHangulChar.double()
+    private fun applyTransform(transform: HangulChar.() -> OverflowResult?) {
+        val overflow = currHangulChar.transform()
         if (overflow != null) {
-            val foo = currHangulChar
+            val incoming = currHangulChar
             currHangulChar = overflow.prev
             compose()
             ignoreOnUpdateOnce = true
             finishComposition()
-            currHangulChar = foo
+            currHangulChar = incoming
         }
-        reflexAndCompose()
+        syncStateAndCompose()
     }
+
+    override fun clickShift() = applyTransform(HangulChar::double)
 
     override fun clickBackspace() {
         when (composingState) {
@@ -136,7 +134,7 @@ class KeyboardKorean(
             ComposingState.SOLE, ComposingState.BOTH -> currHangulChar.erase()
         }
 
-        reflexAndCompose()
+        syncStateAndCompose()
     }
 
     override fun clickSpecial() {
@@ -158,28 +156,17 @@ class KeyboardKorean(
         }
     }
 
-    override fun clickOther() {
-        val overflow = currHangulChar.stroke()
-        if (overflow != null) {
-            val foo = currHangulChar
-            currHangulChar = overflow.prev
-            compose()
-            ignoreOnUpdateOnce = true
-            finishComposition()
-            currHangulChar = foo
-        }
-        reflexAndCompose()
-    }
+    override fun clickOther() = applyTransform(HangulChar::stroke)
 
     override fun clickGeneral(keyText: CharSequence) {
-        assert(keyText.length == 1)
+        require(keyText.length == 1) { "keyText must be a single character" }
         val phoneme = keyText[0]
 
-        assert(inputConnection!!.beginBatchEdit())
+        check(ic.beginBatchEdit()) { "beginBatchEdit failed" }
 
         val addOverflow = currHangulChar.addAtomicPhoneme(phoneme)
-        reflex()
-        assert(composingState != ComposingState.NONE)
+        syncState()
+        check(composingState != ComposingState.NONE) { "Expected composing state after addAtomicPhoneme" }
 
         // below control-flow can be shortened, but intentionally did not for easy understanding
         if (addOverflow == null) {
@@ -188,7 +175,7 @@ class KeyboardKorean(
                 // 갑 + ㅅ -> 값
                 compose()
             } else {
-                assert(composingState == ComposingState.BOTH)
+                check(composingState == ComposingState.BOTH) { "Expected BOTH state" }
                 // 난ㅇ + ㅣ -> 난이
                 val phonemeCurr = currHangulChar.toPhoneme()
                 if (phonemeCurr != null) {
@@ -199,7 +186,7 @@ class KeyboardKorean(
                         compose()
                     } else {
                         // ㅁㆍ + ㅣ -> 머
-                        assert(prevHangulChar!!.vowelPermeate(phoneme))
+                        check(prevHangulChar!!.vowelPermeate(phoneme)) { "vowelPermeate failed unexpectedly" }
                     }
                 }
             }
@@ -207,26 +194,26 @@ class KeyboardKorean(
             if (composingState == ComposingState.SOLE) {
                 // 난 + ㅇ -> 난ㅇ
                 prevHangulChar = addOverflow.prev
-                reflexAndCompose()
+                syncStateAndCompose()
             } else {
-                assert(composingState == ComposingState.BOTH)
+                check(composingState == ComposingState.BOTH) { "Expected BOTH state" }
                 // 언ㅅ + ㆍ  -> 언/ㅅㆍ
                 commitPrev()
                 prevHangulChar = addOverflow.prev
-                reflexAndCompose()
+                syncStateAndCompose()
             }
         } else {
             // 각 + ㅁ -> 각/ㅁ
             // 앙 + ㅣ -> 아/이
             // 난ㅇ + ㄱ -> 난ㅇㄱ
-            val foo = currHangulChar
+            val incoming = currHangulChar
             currHangulChar = addOverflow.prev
             finishComposition()
-            currHangulChar = foo
-            reflexAndCompose()
+            currHangulChar = incoming
+            syncStateAndCompose()
         }
 
         ignoreOnUpdateOnce = true
-        inputConnection!!.endBatchEdit()
+        ic.endBatchEdit()
     }
 }
