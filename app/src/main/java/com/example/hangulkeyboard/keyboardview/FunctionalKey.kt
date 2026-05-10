@@ -3,7 +3,7 @@ package com.example.hangulkeyboard.keyboardview
 import android.media.AudioManager
 
 enum class FunctionalKey {
-    // OTHER is an bonus slot; in this package, it is used for adding stroke in Korean consonants.
+    // OTHER is a bonus slot; in this package, it is used for adding stroke in Korean consonants.
     SHIFT, BACKSPACE, SPECIAL, LANGUAGE, SPACE, ENTER, OTHER, NONE;
 
     fun getFX(): Int = when (this) {

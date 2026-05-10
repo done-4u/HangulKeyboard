@@ -11,7 +11,7 @@ import com.example.hangulkeyboard.keyboardview.KeyboardSpecial
 
 @RequiresApi(Build.VERSION_CODES.S)
 class KeyboardService : InputMethodService() {
-    var currentMode = KeyboardMode.ENGLISH
+    private var currentMode = KeyboardMode.ENGLISH
 
     private val keyboardModeChangeListener = object : KeyboardModeChangeListener {
         override fun changeMode(mode: KeyboardMode) {
@@ -23,7 +23,7 @@ class KeyboardService : InputMethodService() {
     }
 
     // lazy loading is needed to prevent NullPointerException from applicationContext
-    val modeKeyboardViewMap: Map<KeyboardMode, AbstractKeyboardView> by lazy {
+    private val modeKeyboardViewMap: Map<KeyboardMode, AbstractKeyboardView> by lazy {
         mapOf(
             KeyboardMode.KOREAN to KeyboardKorean(
                 applicationContext, layoutInflater, keyboardModeChangeListener
@@ -45,9 +45,9 @@ class KeyboardService : InputMethodService() {
     }
 
     override fun onCreateInputView(): View {
-        val foo = getCurrentView()
-        foo.inputConnection = currentInputConnection
-        return foo.root
+        val currentView = getCurrentView()
+        currentView.inputConnection = currentInputConnection
+        return currentView.root
     }
 
     override fun onUpdateSelection(

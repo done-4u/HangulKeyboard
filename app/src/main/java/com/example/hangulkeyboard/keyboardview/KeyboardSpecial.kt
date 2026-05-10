@@ -41,7 +41,7 @@ class KeyboardSpecial(
         associatedKeyboardBinding.symbolSecondLine,
         associatedKeyboardBinding.symbolThirdLine,
         associatedKeyboardBinding.symbolFourthLine
-    ).map { it.children }.flatten().map { extractButtonFromKeyboardItem(it) }.filterNotNull()
+    ).flatMap { it.children }.mapNotNull { extractButtonFromKeyboardItem(it) }
 
     init {
         initializeAllButtons()

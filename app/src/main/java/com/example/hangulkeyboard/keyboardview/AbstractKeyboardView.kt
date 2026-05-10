@@ -85,7 +85,7 @@ abstract class AbstractKeyboardView(
                 FunctionalKey.SPACE -> clickSpace()
                 FunctionalKey.ENTER -> clickEnter()
                 FunctionalKey.OTHER -> clickOther()
-                FunctionalKey.NONE -> clickGeneral(actualText)
+                FunctionalKey.NONE -> clickGeneral(keyText)
             }
         }
     }

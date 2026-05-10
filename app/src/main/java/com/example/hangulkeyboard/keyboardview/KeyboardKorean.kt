@@ -59,7 +59,6 @@ class KeyboardKorean(
         } else {
             assert(!prevHangulChar!!.isNull())
             if (currHangulChar.isNull()) {
-                Log.d("composition reflex", "CAUTION! PULLED CURR")
                 currHangulChar = prevHangulChar!!
                 prevHangulChar = null
                 ComposingState.SOLE
@@ -72,7 +71,6 @@ class KeyboardKorean(
     // to ignore OnUpdate (for proper reset of composingState)
     private var ignoreOnUpdateOnce = true
         set(value) {
-            Log.d("update selection", "set-ignore: $value")
             field = value
         }
 
@@ -116,12 +114,9 @@ class KeyboardKorean(
     }
 
     override fun onUpdateSelection() {
-        Log.d("update selection", "onUpdateSelection()")
         if (ignoreOnUpdateOnce) {
-            Log.d("update selection", "ignored!")
             ignoreOnUpdateOnce = false
         } else {
-            Log.d("update selection", "finish composition")
             finishComposition()
         }
     }
