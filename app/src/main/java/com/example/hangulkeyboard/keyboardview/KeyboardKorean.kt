@@ -2,7 +2,6 @@ package com.example.hangulkeyboard.keyboardview
 
 import android.content.Context
 import android.os.Build
-import android.util.Log
 import android.view.LayoutInflater
 import android.widget.Button
 import androidx.annotation.RequiresApi
@@ -25,7 +24,7 @@ class KeyboardKorean(
         sequenceOf("ㅣ", "ㆍ", "ㅡ", "←"),
         sequenceOf("ㄱ", "ㄴ", "ㄹ", "␣"),
         sequenceOf("ㅁ", "ㅅ", "ㅇ", "↑", "ㅿ"),
-        sequenceOf("!@#", "⊕", ".", ",", "?", " ! ", "↵")
+        sequenceOf("!@#", "⊕", ".", ",", "?", "!", "↵")
     ).flatten()
 
     override val buttonSequence: Sequence<Button> = sequenceOf(

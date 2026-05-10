@@ -51,24 +51,18 @@ class KeyboardEnglish(
 
     private var capsMode = CapsMode.LOWER
         set(value) {
-            val buttonIterator = buttonSequence.iterator()
-            val stringIterator = buttonStrings.iterator()
-            while (buttonIterator.hasNext()) {
-                assert(stringIterator.hasNext())
-                val nextText = stringIterator.next()
-                buttonIterator.next().text = when (FunctionalKey.eval(nextText)) {
-                    FunctionalKey.SHIFT -> {
-                        when (value) {
-                            CapsMode.LOWER -> "↑"
-                            CapsMode.UPPER_ONCE -> "↑↑"
-                            CapsMode.UPPER_FIXED -> "↑↑↑"
-                        }
+            for (button in buttonSequence) {
+                button.text = when (button.tag as FunctionalKey) {
+                    FunctionalKey.SHIFT -> when (value) {
+                        CapsMode.LOWER -> "↑"
+                        CapsMode.UPPER_ONCE -> "↑↑"
+                        CapsMode.UPPER_FIXED -> "↑↑↑"
                     }
-
-                    else -> when (value) {
-                        CapsMode.LOWER -> nextText.lowercase()
-                        else -> nextText.uppercase()
+                    FunctionalKey.NONE -> when (value) {
+                        CapsMode.LOWER -> button.text.toString().lowercase()
+                        else -> button.text.toString().uppercase()
                     }
+                    else -> button.text
                 }
             }
             field = value

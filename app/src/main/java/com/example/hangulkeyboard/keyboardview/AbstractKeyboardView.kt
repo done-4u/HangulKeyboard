@@ -53,22 +53,21 @@ abstract class AbstractKeyboardView(
         while (buttonIterator.hasNext()) {
             assert(stringIterator.hasNext())
             val button = buttonIterator.next()
-            button.text = stringIterator.next()
+            val str = stringIterator.next()
+            button.text = str
+            button.tag = FunctionalKey.eval(str)
             button.setOnClickListener(generateOnClickListener(button))
         }
     }
 
     // To avoid non-button components (e.g. spaces), we have to filter them by null.
-    protected fun extractButtonFromKeyboardItem(v: View?): Button? = try {
-        (v as ConstraintLayout).children.first() as Button
-    } catch (e: ClassCastException) {
-        null
-    }
+    protected fun extractButtonFromKeyboardItem(v: View?): Button? =
+        ((v as? ConstraintLayout)?.children?.firstOrNull()) as? Button
 
     private fun generateOnClickListener(keyButton: Button): OnClickListener {
         return OnClickListener {
-            val keyText = keyButton.text
-            audioManager.playSoundEffect(FunctionalKey.eval(keyText).getFX())
+            val functionalKey = keyButton.tag as FunctionalKey
+            audioManager.playSoundEffect(functionalKey.getFX())
             vibratorManager.vibrate(
                 CombinedVibration.createParallel(
                     VibrationEffect.createOneShot(
@@ -76,8 +75,7 @@ abstract class AbstractKeyboardView(
                     )
                 )
             )
-            val actualText = keyText.trim()
-            when (FunctionalKey.eval(actualText)) {
+            when (functionalKey) {
                 FunctionalKey.SHIFT -> clickShift()
                 FunctionalKey.BACKSPACE -> clickBackspace()
                 FunctionalKey.SPECIAL -> clickSpecial()
@@ -85,7 +83,7 @@ abstract class AbstractKeyboardView(
                 FunctionalKey.SPACE -> clickSpace()
                 FunctionalKey.ENTER -> clickEnter()
                 FunctionalKey.OTHER -> clickOther()
-                FunctionalKey.NONE -> clickGeneral(keyText)
+                FunctionalKey.NONE -> clickGeneral(keyButton.text.toString())
             }
         }
     }
@@ -109,7 +107,6 @@ abstract class AbstractKeyboardView(
     }
 
     protected open fun clickSpecial() {
-        KeyboardSpecial.returningMode = mode
         keyboardModeChangeListener.changeMode(KeyboardMode.SPECIAL)
     }
 

@@ -15,6 +15,9 @@ class KeyboardService : InputMethodService() {
 
     private val keyboardModeChangeListener = object : KeyboardModeChangeListener {
         override fun changeMode(mode: KeyboardMode) {
+            if (mode == KeyboardMode.SPECIAL) {
+                (modeKeyboardViewMap[KeyboardMode.SPECIAL] as KeyboardSpecial).returningMode = currentMode
+            }
             currentMode = mode
             currentInputConnection.finishComposingText()
             modeKeyboardViewMap[mode]!!.inputConnection = currentInputConnection

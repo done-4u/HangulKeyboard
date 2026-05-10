@@ -21,7 +21,7 @@ class KeyboardSpecial(
 
     override val buttonStrings = sequenceOf(
         sequenceOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0"),
-        sequenceOf(".", ",", "?", " ! ", ":"),
+        sequenceOf(".", ",", "?", "!", ":"),
         sequenceOf("-", "_", "'", "\"", ";"),
         sequenceOf("↑", "@", "#", "%", "←"),
         sequenceOf("⊕", "(", "␣", ")", "↵")
@@ -63,11 +63,9 @@ class KeyboardSpecial(
         isOnShift = !isOnShift
     }
 
+    internal var returningMode = KeyboardMode.ENGLISH
+
     override fun clickLanguage() {
         keyboardModeChangeListener.changeMode(returningMode)
-    }
-
-    companion object {
-        var returningMode = KeyboardMode.ENGLISH
     }
 }

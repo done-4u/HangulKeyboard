@@ -13,16 +13,15 @@ enum class FunctionalKey {
         else -> AudioManager.FX_KEYPRESS_STANDARD
     }
 
-    // To avoid reserved key symbols, inject spaces in both sides
     companion object {
-        fun eval(text: CharSequence) = when (text[0]) {
-            '↑' -> SHIFT
-            '←' -> BACKSPACE
-            '!' -> SPECIAL
-            '⊕' -> LANGUAGE
-            '␣' -> SPACE
-            '↵' -> ENTER
-            'ㅿ' -> OTHER
+        fun eval(text: CharSequence) = when (text.toString()) {
+            "↑" -> SHIFT
+            "←" -> BACKSPACE
+            "!@#" -> SPECIAL
+            "⊕" -> LANGUAGE
+            "␣" -> SPACE
+            "↵" -> ENTER
+            "ㅿ" -> OTHER
             else -> NONE
         }
     }
