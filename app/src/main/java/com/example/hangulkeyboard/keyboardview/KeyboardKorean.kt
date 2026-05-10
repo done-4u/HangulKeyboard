@@ -69,9 +69,6 @@ class KeyboardKorean(
 
     // to ignore OnUpdate (for proper reset of composingState)
     private var ignoreOnUpdateOnce = true
-        set(value) {
-            field = value
-        }
 
     private fun compose() {
         val text = when (composingState) {
@@ -121,7 +118,15 @@ class KeyboardKorean(
     }
 
     override fun clickShift() {
-        currHangulChar.double()
+        val overflow = currHangulChar.double()
+        if (overflow != null) {
+            val foo = currHangulChar
+            currHangulChar = overflow.prev
+            compose()
+            ignoreOnUpdateOnce = true
+            finishComposition()
+            currHangulChar = foo
+        }
         reflexAndCompose()
     }
 
@@ -154,7 +159,15 @@ class KeyboardKorean(
     }
 
     override fun clickOther() {
-        currHangulChar.stroke()
+        val overflow = currHangulChar.stroke()
+        if (overflow != null) {
+            val foo = currHangulChar
+            currHangulChar = overflow.prev
+            compose()
+            ignoreOnUpdateOnce = true
+            finishComposition()
+            currHangulChar = foo
+        }
         reflexAndCompose()
     }
 
