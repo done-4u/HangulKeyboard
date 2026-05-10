@@ -270,7 +270,7 @@ private const val HANGUL_UNICODE_BASE = 0xAC00
 private const val HANGUL_UNICODE_LAST = 0xD7A3
 
 
-data class OverflowResult(val connected: Boolean, val prev: HangulChar)
+internal data class OverflowResult(val connected: Boolean, val prev: HangulChar)
 
 
 class HangulChar {
@@ -280,24 +280,24 @@ class HangulChar {
     private var initialConsonant: Char? = null
         set(value) {
             field = value
-            reflexState()
+            syncState()
         }
     private var medialVowel: Char? = null
         set(value) {
             field = value
-            reflexState()
+            syncState()
         }
     private var finalConsonant: Char? = null
         set(value) {
             field = value
-            reflexState()
+            syncState()
         }
 
     // update state
-    private fun reflexState() {
-        assert(initialConsonant == null || allConsonants.contains(initialConsonant!!))
-        assert(medialVowel == null || allVowels.contains(medialVowel!!))
-        assert(finalConsonant == null || allConsonants.contains(finalConsonant!!))
+    private fun syncState() {
+        check(initialConsonant == null || allConsonants.contains(initialConsonant!!)) { "initialConsonant is not a valid consonant" }
+        check(medialVowel == null || allVowels.contains(medialVowel!!)) { "medialVowel is not a valid vowel" }
+        check(finalConsonant == null || allConsonants.contains(finalConsonant!!)) { "finalConsonant is not a valid consonant" }
 
         state = if (finalConsonant == null) {
             if (medialVowel == null) {
@@ -319,12 +319,12 @@ class HangulChar {
         return if (allConsonants.contains(phoneme)) {
             caseConsonant(phoneme)
         } else {
-            assert(allVowels.contains(phoneme))
+            check(allVowels.contains(phoneme)) { "Phoneme '$phoneme' is neither a consonant nor a vowel" }
             caseVowel(phoneme)
         }
     }
 
-    fun addAtomicPhoneme(phoneme: Char): OverflowResult? {
+    internal fun addAtomicPhoneme(phoneme: Char): OverflowResult? {
         // adding 'ㅣ', 'ㆍ', 'ㅡ', 'ㄱ', 'ㄴ', 'ㄹ', 'ㅁ', 'ㅅ', 'ㅇ'
         if (!allAtomics.contains(phoneme)) {
             throw IllegalArgumentException()
@@ -347,7 +347,7 @@ class HangulChar {
                 // ㄱ + ㄱ => ㄱㄱ
                 // ㄹ + ㄱ => ㄹㄱ (not complex consonants)
                 // ㅏ + ㄴ => ㅏㄴ
-                ret = OverflowResult(false, copyAndReset())
+                ret = OverflowResult(false, cloneAndReset())
                 initialConsonant = consonant
             }
 
@@ -366,17 +366,17 @@ class HangulChar {
                     } else {
                         if (expectedAtomicsForCfcMap[finalConsonant]!!.contains(consonant)) {
                             // 안 + ㅇ => 안ㅇ (it may be "않" later)
-                            ret = OverflowResult(true, copyAndReset())
+                            ret = OverflowResult(true, cloneAndReset())
                             initialConsonant = consonant
                         } else {
                             // 안 + ㄱ => 안ㄱ (it can never reach "않" or "앉")
-                            ret = OverflowResult(false, copyAndReset())
+                            ret = OverflowResult(false, cloneAndReset())
                             initialConsonant = consonant
                         }
                     }
                 } else {
                     // 맛 + ㅇ => 맛ㅇ
-                    ret = OverflowResult(false, copyAndReset())
+                    ret = OverflowResult(false, cloneAndReset())
                     initialConsonant = consonant
                 }
             }
@@ -401,7 +401,7 @@ class HangulChar {
                     medialVowel = vowel
                 } else {
                     // ㄱ + ㆍ => ㄱㆍ (can be "거" later)
-                    ret = OverflowResult(true, copyAndReset())
+                    ret = OverflowResult(true, cloneAndReset())
                     medialVowel = vowel
                 }
             }
@@ -410,7 +410,7 @@ class HangulChar {
                 val cmv = cmvBuildMap[medialVowel]?.get(vowel)
                 if (cmv == null) {
                     // ㅣ + ㅣ => ㅣㅣ
-                    ret = OverflowResult(false, copyAndReset())
+                    ret = OverflowResult(false, cloneAndReset())
                     medialVowel = vowel
                 } else {
                     // 오 + ㅣ => 외
@@ -420,21 +420,21 @@ class HangulChar {
 
             State.FULL -> {
                 if (!mvIdxMap.containsKey(vowel)) {
-                    ret = OverflowResult(true, copyAndReset())
+                    ret = OverflowResult(true, cloneAndReset())
                 } else {
                     val pair = cfcBreakMap[finalConsonant]
                     if (pair == null) {
                         // 울 + ㅣ => 우리
                         val detachedFc = finalConsonant
                         finalConsonant = null
-                        ret = OverflowResult(false, copyAndReset())
+                        ret = OverflowResult(false, cloneAndReset())
                         initialConsonant = detachedFc
                     } else {
                         // 몺 + ㅣ => 몹시
                         val left = pair.first
                         val moving = pair.second
                         finalConsonant = left
-                        ret = OverflowResult(false, copyAndReset())
+                        ret = OverflowResult(false, cloneAndReset())
                         initialConsonant = moving
                     }
                 }
@@ -446,7 +446,7 @@ class HangulChar {
     }
 
     fun vowelPermeate(vowel: Char): Boolean {
-        assert(allVowels.contains(vowel))
+        require(allVowels.contains(vowel)) { "vowel '$vowel' is not a valid vowel" }
         when (state) {
             State.NONE -> {
                 // "" + ㅏ => ㅏ
@@ -501,7 +501,7 @@ class HangulChar {
         } else if (medialVowel != null) {
             medialVowel = cmvBreakMap[medialVowel]
         } else {
-            assert(initialConsonant != null)
+            check(initialConsonant != null) { "Expected initialConsonant to be set in state $state" }
             initialConsonant = null
         }
 
@@ -537,7 +537,7 @@ class HangulChar {
                     } else {
                         // 갇 + (double) -> 가ㄸ
                         finalConsonant = null
-                        val ret = OverflowResult(false, copyAndReset())
+                        val ret = OverflowResult(false, cloneAndReset())
                         initialConsonant = replacedFc
                         return ret
                     }
@@ -548,11 +548,11 @@ class HangulChar {
         }
     }
 
-    fun stroke(): OverflowResult? {
+    internal fun stroke(): OverflowResult? {
         return transformLastPhoneme(strokeMap)
     }
 
-    fun double(): OverflowResult? {
+    internal fun double(): OverflowResult? {
         return transformLastPhoneme(doubleMap)
     }
 
@@ -596,7 +596,7 @@ class HangulChar {
         return char?.toString() ?: ""
     }
 
-    private fun copy(): HangulChar {
+    private fun clone(): HangulChar {
         val ret = HangulChar()
         ret.initialConsonant = initialConsonant
         ret.medialVowel = medialVowel
@@ -605,14 +605,15 @@ class HangulChar {
     }
 
     private fun reset() {
-        // DO NOT change the order! (for state legibility)
+        // DO NOT change the order! reflexState() runs on each assignment;
+        // clear in reverse IC/MV/FC order to avoid invalid intermediate states.
         finalConsonant = null
         medialVowel = null
         initialConsonant = null
     }
 
-    private fun copyAndReset(): HangulChar {
-        val ret = copy()
+    private fun cloneAndReset(): HangulChar {
+        val ret = clone()
         reset()
         return ret
     }
