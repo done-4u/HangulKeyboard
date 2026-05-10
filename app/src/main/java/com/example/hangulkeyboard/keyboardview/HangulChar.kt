@@ -113,7 +113,7 @@ private val mvIdxMap = mapOf(
     'ㅣ' to 20,
 )
 
-private val idxMVMap = icIdxMap.entries.associateBy({ it.value }) { it.key }
+private val idxMVMap = mvIdxMap.entries.associateBy({ it.value }) { it.key }
 
 private val fcIdxMap = mapOf(
     null to 0,
@@ -146,7 +146,7 @@ private val fcIdxMap = mapOf(
     'ㅎ' to 27,
 )
 
-private val idxFCMap = icIdxMap.entries.associateBy({ it.value }) { it.key }
+private val idxFCMap = fcIdxMap.entries.associateBy({ it.value }) { it.key }
 
 private val doubleMap = mapOf(
     'ㄱ' to 'ㄲ',
