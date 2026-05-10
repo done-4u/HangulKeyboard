@@ -625,9 +625,10 @@ class HangulChar {
             } else if (allVowels.contains(char)) {
                 ret.medialVowel = char
             } else if (char.code in HANGUL_UNICODE_BASE..HANGUL_UNICODE_LAST) {
-                ret.initialConsonant = idxICMap[char.code / (NUM_MV * NUM_FC)]
-                ret.medialVowel = idxMVMap[(char.code % (NUM_MV * NUM_FC)) / NUM_FC]
-                ret.finalConsonant = idxFCMap[char.code % NUM_FC]
+                val offset = char.code - HANGUL_UNICODE_BASE
+                ret.initialConsonant = idxICMap[offset / (NUM_MV * NUM_FC)]
+                ret.medialVowel = idxMVMap[(offset % (NUM_MV * NUM_FC)) / NUM_FC]
+                ret.finalConsonant = idxFCMap[offset % NUM_FC]
             }
             return ret
         }
