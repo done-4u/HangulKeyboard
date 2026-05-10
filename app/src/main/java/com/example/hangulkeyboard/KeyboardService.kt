@@ -19,9 +19,10 @@ class KeyboardService : InputMethodService() {
                 (modeKeyboardViewMap[KeyboardMode.SPECIAL] as KeyboardSpecial).returningMode = currentMode
             }
             currentMode = mode
-            currentInputConnection.finishComposingText()
-            modeKeyboardViewMap[mode]!!.inputConnection = currentInputConnection
-            setInputView(modeKeyboardViewMap[mode]!!.root)
+            currentInputConnection?.finishComposingText()
+            val keyboard = modeKeyboardViewMap[mode] ?: return
+            keyboard.inputConnection = currentInputConnection
+            setInputView(keyboard.root)
         }
     }
 
