@@ -2,6 +2,7 @@ package com.example.hangulkeyboard
 
 import android.inputmethodservice.InputMethodService
 import android.view.View
+import android.view.inputmethod.EditorInfo
 import com.example.hangulkeyboard.keyboardview.AbstractKeyboardView
 import com.example.hangulkeyboard.keyboardview.KeyboardEnglish
 import com.example.hangulkeyboard.keyboardview.KeyboardKorean
@@ -36,6 +37,11 @@ class KeyboardService : InputMethodService() {
 
     private fun getCurrentView(): AbstractKeyboardView {
         return modeKeyboardViewMap[currentMode] ?: error("No keyboard for mode $currentMode")
+    }
+
+    override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
+        super.onStartInputView(info, restarting)
+        keyboardModeChangeListener.changeMode(currentMode)
     }
 
     override fun updateInputViewShown() {
