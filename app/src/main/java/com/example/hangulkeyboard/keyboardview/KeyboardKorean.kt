@@ -21,7 +21,7 @@ class KeyboardKorean(
         associatedKeyboardBinding.hangulSecondLine,
         associatedKeyboardBinding.hangulThirdLine,
         associatedKeyboardBinding.hangulFourthLine
-    ).map { it.children }.flatten().map { extractButtonFromKeyboardItem(it) }.filterNotNull()
+    ).flatMap { it.children }.mapNotNull { extractButtonFromKeyboardItem(it) }
 
     init {
         initializeAllButtons(
@@ -46,15 +46,16 @@ class KeyboardKorean(
     // DO NOT forget to call this whenever you affect composing characters!!
     private fun syncState() {
         composingState = if (prevHangulChar == null) {
-            if (currHangulChar.isNull()) {
+            if (currHangulChar.isEmpty()) {
                 ComposingState.NONE
             } else {
                 ComposingState.SOLE
             }
         } else {
-            check(!prevHangulChar!!.isNull()) { "prevHangulChar must not be in empty state" }
-            if (currHangulChar.isNull()) {
-                currHangulChar = prevHangulChar!!
+            val prev = checkNotNull(prevHangulChar)
+            check(!prev.isEmpty()) { "prevHangulChar must not be in empty state" }
+            if (currHangulChar.isEmpty()) {
+                currHangulChar = prev
                 prevHangulChar = null
                 ComposingState.SOLE
             } else {
@@ -63,14 +64,14 @@ class KeyboardKorean(
         }
     }
 
-    // to ignore OnUpdate (for proper reset of composingState)
-    private var ignoreOnUpdateOnce = true
+    // counts programmatic IC edits that will trigger onUpdateSelection, which should be ignored
+    private var ignoreUpdateCount = 0
 
     private fun compose() {
         val text = when (composingState) {
             ComposingState.NONE -> ""
             ComposingState.SOLE -> currHangulChar.toString()
-            ComposingState.BOTH -> prevHangulChar!!.toString() + currHangulChar.toString()
+            ComposingState.BOTH -> checkNotNull(prevHangulChar).toString() + currHangulChar.toString()
         }
         ic.setComposingText(text, 1)
     }
@@ -95,22 +96,19 @@ class KeyboardKorean(
     }
 
     private fun commitPrev() {
-        ic.commitText(prevHangulChar!!.toString(), 1)
+        ic.commitText(checkNotNull(prevHangulChar).toString(), 1)
         prevHangulChar = null
         syncState()
     }
 
     override fun onInputConnectionSet() {
-        ignoreOnUpdateOnce = true
+        ignoreUpdateCount++
         resetComposition()
     }
 
     override fun onUpdateSelection() {
-        if (ignoreOnUpdateOnce) {
-            ignoreOnUpdateOnce = false
-        } else {
-            finishComposition()
-        }
+        if (ignoreUpdateCount > 0) ignoreUpdateCount--
+        else finishComposition()
     }
 
     private fun applyTransform(transform: HangulChar.() -> OverflowResult?) {
@@ -119,7 +117,7 @@ class KeyboardKorean(
             val incoming = currHangulChar
             currHangulChar = overflow.prev
             compose()
-            ignoreOnUpdateOnce = true
+            ignoreUpdateCount++
             finishComposition()
             currHangulChar = incoming
         }
@@ -148,7 +146,7 @@ class KeyboardKorean(
     }
 
     override fun clickSpace() {
-        ignoreOnUpdateOnce = true
+        ignoreUpdateCount++
         if (composingState == ComposingState.NONE) {
             super.clickSpace()
         } else {
@@ -177,16 +175,17 @@ class KeyboardKorean(
             } else {
                 check(composingState == ComposingState.BOTH) { "Expected BOTH state" }
                 // 난ㅇ + ㅣ -> 난이
+                val prev = checkNotNull(prevHangulChar)
                 val phonemeCurr = currHangulChar.toPhoneme()
                 if (phonemeCurr != null) {
-                    if (currHangulChar.absorbFinalConsonant(prevHangulChar!!)) {
+                    if (currHangulChar.absorbFinalConsonant(prev)) {
                         // 괄ㆍ + ㅡ -> 과로
                         // 맔ㆍ + ㅡ -> 말소
                         commitPrev()
                         compose()
                     } else {
                         // ㅁㆍ + ㅣ -> 머
-                        check(prevHangulChar!!.vowelPermeate(phoneme)) { "vowelPermeate failed unexpectedly" }
+                        check(prev.vowelPermeate(phoneme)) { "vowelPermeate failed unexpectedly" }
                     }
                 }
             }
@@ -213,7 +212,7 @@ class KeyboardKorean(
             syncStateAndCompose()
         }
 
-        ignoreOnUpdateOnce = true
+        ignoreUpdateCount++
         ic.endBatchEdit()
     }
 }

@@ -43,13 +43,11 @@ class KeyboardSpecial(
         initializeAllButtons(buttonStrings)
     }
 
-    private val cachedButtons: List<Button> by lazy { buttonSequence.toList() }
-
     private var isOnShift = false
         set(value) {
             val stringIterator =
                 if (value) buttonShiftStrings.iterator() else buttonStrings.iterator()
-            for (button in cachedButtons) {
+            for (button in buttonSequence) {
                 button.text = stringIterator.next()
             }
             field = value

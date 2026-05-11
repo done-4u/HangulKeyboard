@@ -34,7 +34,7 @@ abstract class AbstractKeyboardView(
         }
     protected val ic: InputConnection
         get() = inputConnection ?: error("InputConnection is not set")
-    val root: LinearLayout by lazy { associatedKeyboardBinding.root as LinearLayout }
+    val root: View get() = associatedKeyboardBinding.root
 
     // audio, vibration
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
