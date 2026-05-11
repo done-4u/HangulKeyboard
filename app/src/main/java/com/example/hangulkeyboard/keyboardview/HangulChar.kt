@@ -274,9 +274,9 @@ internal data class OverflowResult(val connected: Boolean, val prev: HangulChar)
 
 
 class HangulChar {
-    private enum class State { NONE, SOLE_CONSONANT, SOLE_VOWEL, NO_FINAL, FULL }
+    private enum class State { EMPTY, SOLE_CONSONANT, SOLE_VOWEL, NO_FINAL, FULL }
 
-    private var state: State = State.NONE
+    private var state: State = State.EMPTY
     private var initialConsonant: Char? = null
         set(value) {
             field = value
@@ -301,26 +301,17 @@ class HangulChar {
 
         state = if (finalConsonant == null) {
             if (medialVowel == null) {
-                if (initialConsonant == null) State.NONE
+                if (initialConsonant == null) State.EMPTY
                 else State.SOLE_CONSONANT
             } else {
                 if (initialConsonant == null) State.SOLE_VOWEL
                 else State.NO_FINAL
             }
         } else {
-            if (initialConsonant == null || medialVowel == null) throw IllegalStateException()
+            if (initialConsonant == null || medialVowel == null) {
+                throw IllegalStateException("finalConsonant set but ic=$initialConsonant mv=$medialVowel")
+            }
             else State.FULL
-        }
-    }
-
-    private fun <T> categorize(
-        phoneme: Char, caseConsonant: (Char) -> T, caseVowel: (Char) -> T
-    ): T {
-        return if (allConsonants.contains(phoneme)) {
-            caseConsonant(phoneme)
-        } else {
-            check(allVowels.contains(phoneme)) { "Phoneme '$phoneme' is neither a consonant nor a vowel" }
-            caseVowel(phoneme)
         }
     }
 
@@ -330,7 +321,13 @@ class HangulChar {
             throw IllegalArgumentException()
         }
 
-        return categorize(phoneme, ::addAtomicConsonant, ::addAtomicVowel)
+        return if (allConsonants.contains(phoneme)) {
+            addAtomicConsonant(phoneme)
+        } else if (allVowels.contains(phoneme)) {
+            addAtomicVowel(phoneme)
+        } else {
+            error("Phoneme '$phoneme' is neither a consonant nor a vowel")
+        }
     }
 
     private fun addAtomicConsonant(consonant: Char): OverflowResult? {
@@ -338,7 +335,7 @@ class HangulChar {
         var ret: OverflowResult? = null
 
         when (state) {
-            State.NONE -> {
+            State.EMPTY -> {
                 // "" + ㄱ => ㄱ
                 initialConsonant = consonant
             }
@@ -390,7 +387,7 @@ class HangulChar {
         var ret: OverflowResult? = null
 
         when (state) {
-            State.NONE -> {
+            State.EMPTY -> {
                 // "" + ㅣ => ㅣ
                 medialVowel = vowel
             }
@@ -448,7 +445,7 @@ class HangulChar {
     fun vowelPermeate(vowel: Char): Boolean {
         require(allVowels.contains(vowel)) { "vowel '$vowel' is not a valid vowel" }
         when (state) {
-            State.NONE -> {
+            State.EMPTY -> {
                 // "" + ㅏ => ㅏ
                 medialVowel = vowel
                 return true
@@ -492,7 +489,7 @@ class HangulChar {
     }
 
     fun erase(): Boolean {
-        if (state == State.NONE) {
+        if (state == State.EMPTY) {
             return false
         }
 
@@ -506,12 +503,11 @@ class HangulChar {
         }
 
         return true
-
     }
 
     private fun transformLastPhoneme(transformMap: Map<Char, Char>): OverflowResult? {
         when (state) {
-            State.NONE -> return null
+            State.EMPTY -> return null
 
             State.SOLE_CONSONANT -> {
                 if (transformMap.containsKey(initialConsonant)) {
@@ -556,8 +552,8 @@ class HangulChar {
         return transformLastPhoneme(doubleMap)
     }
 
-    fun isNull(): Boolean {
-        return state == State.NONE
+    fun isEmpty(): Boolean {
+        return state == State.EMPTY
     }
 
     // If possible, return it. Else return null.
@@ -571,7 +567,7 @@ class HangulChar {
 
     fun toChar(): Char? {
         return when (state) {
-            State.NONE -> null
+            State.EMPTY -> null
             State.SOLE_CONSONANT -> initialConsonant
             State.SOLE_VOWEL -> medialVowel
             State.NO_FINAL -> {
@@ -619,7 +615,7 @@ class HangulChar {
     }
 
     companion object {
-        fun ofChar(char: Char): HangulChar {
+        fun fromChar(char: Char): HangulChar {
             val ret = HangulChar()
             if (allConsonants.contains(char)) {
                 ret.initialConsonant = char
