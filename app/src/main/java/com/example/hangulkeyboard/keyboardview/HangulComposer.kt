@@ -7,7 +7,7 @@ internal sealed class ComposerResult {
     data class Committed(val committed: String, val composing: String) : ComposerResult()
     /** finishComposingText(), then setComposingText(composing) */
     data class Finished(val composing: String) : ComposerResult()
-    /** setComposingText(flash), ignoreUpdateCount++, finishComposingText(), setComposingText(composing) */
+    /** setComposingText(flash), ignoreNextUpdate=true, finishComposingText(), setComposingText(composing) */
     data class FlashFinish(val flash: String, val composing: String) : ComposerResult()
 }
 
@@ -95,11 +95,6 @@ internal class HangulComposer {
 
     fun applyDouble(): ComposerResult = applyTransform(HangulChar::double)
     fun applyStroke(): ComposerResult = applyTransform(HangulChar::stroke)
-
-    fun reset() {
-        prevChar = null
-        currChar = HangulChar()
-    }
 
     fun finish() {
         prevChar = null
