@@ -14,7 +14,7 @@ class KeyboardService : InputMethodService() {
 
     private val keyboardModeChangeListener = KeyboardModeChangeListener { mode ->
         if (mode == KeyboardMode.SPECIAL) {
-            (modeKeyboardViewMap[KeyboardMode.SPECIAL] as KeyboardSpecial).returningMode = currentMode
+            (modeKeyboardViewMap[KeyboardMode.SPECIAL] as KeyboardSpecial).enterFrom(currentMode)
         }
         currentMode = mode
         currentInputConnection?.finishComposingText()

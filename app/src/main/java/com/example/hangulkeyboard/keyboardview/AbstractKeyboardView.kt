@@ -57,7 +57,6 @@ abstract class AbstractKeyboardView(
         }
     }
 
-    // To avoid non-button components (e.g. spaces), we have to filter them by null.
     protected fun extractButtonFromKeyboardItem(v: View?): Button? =
         ((v as? ConstraintLayout)?.children?.firstOrNull()) as? Button
 

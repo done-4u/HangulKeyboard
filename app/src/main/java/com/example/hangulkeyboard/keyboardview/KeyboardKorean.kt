@@ -27,18 +27,18 @@ class KeyboardKorean(
         initializeAllButtons(
             sequenceOf(
                 sequenceOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0"),
-                sequenceOf("ㅣ", "ㆍ", "ㅡ", "←"),
-                sequenceOf("ㄱ", "ㄴ", "ㄹ", "␣"),
-                sequenceOf("ㅁ", "ㅅ", "ㅇ", "↑", "′"),
-                sequenceOf("!@#", "⊕", ".", ",", "?", "!", "↵")
+                sequenceOf("ㅣ", "ㆍ", "ㅡ", FunctionalKey.LABEL_BACKSPACE),
+                sequenceOf("ㄱ", "ㄴ", "ㄹ", FunctionalKey.LABEL_SPACE),
+                sequenceOf("ㅁ", "ㅅ", "ㅇ", FunctionalKey.LABEL_SHIFT, FunctionalKey.LABEL_OTHER),
+                sequenceOf(FunctionalKey.LABEL_SPECIAL, FunctionalKey.LABEL_LANGUAGE, ".", ",", "?", "!", FunctionalKey.LABEL_ENTER)
             ).flatten()
         )
     }
 
     private val composer = HangulComposer()
 
-    // counts programmatic IC edits that will trigger onUpdateSelection, which should be ignored
-    private var ignoreUpdateCount = 0
+    // set before programmatic IC edits that will trigger onUpdateSelection, which should be ignored
+    private var ignoreNextUpdate = false
 
     private fun applyResult(result: ComposerResult) {
         when (result) {
@@ -53,7 +53,7 @@ class KeyboardKorean(
             }
             is ComposerResult.FlashFinish -> {
                 ic.setComposingText(result.flash, 1)
-                ignoreUpdateCount++
+                ignoreNextUpdate = true
                 ic.finishComposingText()
                 ic.setComposingText(result.composing, 1)
             }
@@ -61,13 +61,13 @@ class KeyboardKorean(
     }
 
     override fun onInputConnectionSet() {
-        ignoreUpdateCount++
-        composer.reset()
+        ignoreNextUpdate = true
+        composer.finish()
         ic.setComposingText("", 1)
     }
 
     override fun onUpdateSelection() {
-        if (ignoreUpdateCount > 0) ignoreUpdateCount--
+        if (ignoreNextUpdate) ignoreNextUpdate = false
         else {
             ic.finishComposingText()
             composer.finish()
@@ -98,7 +98,7 @@ class KeyboardKorean(
     }
 
     override fun clickSpace() {
-        ignoreUpdateCount++
+        ignoreNextUpdate = true
         if (composer.composingText.isEmpty()) {
             super.clickSpace()
         } else {
@@ -113,7 +113,7 @@ class KeyboardKorean(
         require(keyText.length == 1) { "keyText must be a single character" }
         check(ic.beginBatchEdit()) { "beginBatchEdit failed" }
         applyResult(composer.addPhoneme(keyText[0]))
-        ignoreUpdateCount++
+        ignoreNextUpdate = true
         ic.endBatchEdit()
     }
 }

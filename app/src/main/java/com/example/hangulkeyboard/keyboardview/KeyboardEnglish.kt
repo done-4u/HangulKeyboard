@@ -21,7 +21,7 @@ class KeyboardEnglish(
         associatedKeyboardBinding.alphabetSecondLine,
         associatedKeyboardBinding.alphabetThirdLine,
         associatedKeyboardBinding.alphabetFourthLine
-    ).map { it.children }.flatten().map { extractButtonFromKeyboardItem(it) }.filterNotNull()
+    ).flatMap { it.children }.mapNotNull { extractButtonFromKeyboardItem(it) }
 
     init {
         initializeAllButtons(
@@ -29,8 +29,8 @@ class KeyboardEnglish(
                 sequenceOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0"),
                 sequenceOf("q", "w", "e", "r", "t", "y", "u", "i", "o", "p"),
                 sequenceOf("a", "s", "d", "f", "g", "h", "j", "k", "l"),
-                sequenceOf("↑", "z", "x", "c", "v", "b", "n", "m", "←"),
-                sequenceOf("!@#", "⊕", ",", "␣", ".", "↵")
+                sequenceOf(FunctionalKey.LABEL_SHIFT, "z", "x", "c", "v", "b", "n", "m", FunctionalKey.LABEL_BACKSPACE),
+                sequenceOf(FunctionalKey.LABEL_SPECIAL, FunctionalKey.LABEL_LANGUAGE, ",", FunctionalKey.LABEL_SPACE, ".", FunctionalKey.LABEL_ENTER)
             ).flatten()
         )
     }
@@ -50,9 +50,9 @@ class KeyboardEnglish(
             for (button in buttonSequence) {
                 button.text = when (button.tag as FunctionalKey) {
                     FunctionalKey.SHIFT -> when (value) {
-                        CapsMode.LOWER -> "↑"
-                        CapsMode.UPPER_ONCE -> "↑↑"
-                        CapsMode.UPPER_FIXED -> "↑↑↑"
+                        CapsMode.LOWER -> FunctionalKey.LABEL_SHIFT
+                        CapsMode.UPPER_ONCE -> FunctionalKey.LABEL_SHIFT.repeat(2)
+                        CapsMode.UPPER_FIXED -> FunctionalKey.LABEL_SHIFT.repeat(3)
                     }
                     FunctionalKey.NONE -> when (value) {
                         CapsMode.LOWER -> button.text.toString().lowercase()

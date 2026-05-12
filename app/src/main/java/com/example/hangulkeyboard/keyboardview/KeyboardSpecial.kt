@@ -19,16 +19,16 @@ class KeyboardSpecial(
         sequenceOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0"),
         sequenceOf(".", ",", "?", "!", ":"),
         sequenceOf("-", "_", "'", "\"", ";"),
-        sequenceOf("↑", "@", "#", "%", "←"),
-        sequenceOf("⊕", "(", "␣", ")", "↵")
+        sequenceOf(FunctionalKey.LABEL_SHIFT, "@", "#", "%", FunctionalKey.LABEL_BACKSPACE),
+        sequenceOf(FunctionalKey.LABEL_LANGUAGE, "(", FunctionalKey.LABEL_SPACE, ")", FunctionalKey.LABEL_ENTER)
     ).flatten()
 
     private val buttonShiftStrings = sequenceOf(
         sequenceOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0"),
         sequenceOf("<", ">", "`", "&", "^"),
         sequenceOf("+", "*", "/", "~", "\\"),
-        sequenceOf("↑", "{", "=", "}", "←"),
-        sequenceOf("⊕", "[", "␣", "]", "↵")
+        sequenceOf(FunctionalKey.LABEL_SHIFT, "{", "=", "}", FunctionalKey.LABEL_BACKSPACE),
+        sequenceOf(FunctionalKey.LABEL_LANGUAGE, "[", FunctionalKey.LABEL_SPACE, "]", FunctionalKey.LABEL_ENTER)
     ).flatten()
 
     override val buttonSequence: Sequence<Button> = sequenceOf(
@@ -57,7 +57,11 @@ class KeyboardSpecial(
         isOnShift = !isOnShift
     }
 
-    internal var returningMode = KeyboardMode.ENGLISH
+    private var returningMode = KeyboardMode.ENGLISH
+
+    fun enterFrom(mode: KeyboardMode) {
+        returningMode = mode
+    }
 
     override fun clickLanguage() {
         keyboardModeChangeListener.changeMode(returningMode)
