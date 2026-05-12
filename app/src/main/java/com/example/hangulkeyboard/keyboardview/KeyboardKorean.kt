@@ -29,7 +29,7 @@ class KeyboardKorean(
                 sequenceOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0"),
                 sequenceOf("ㅣ", "ㆍ", "ㅡ", "←"),
                 sequenceOf("ㄱ", "ㄴ", "ㄹ", "␣"),
-                sequenceOf("ㅁ", "ㅅ", "ㅇ", "↑", "ㅿ"),
+                sequenceOf("ㅁ", "ㅅ", "ㅇ", "↑", "′"),
                 sequenceOf("!@#", "⊕", ".", ",", "?", "!", "↵")
             ).flatten()
         )
