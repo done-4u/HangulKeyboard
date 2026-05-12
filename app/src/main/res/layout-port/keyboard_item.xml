@@ -5,6 +5,7 @@
 
     <Button
         android:id="@+id/key_button"
+        style="@style/KeyboardKey"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:duplicateParentState="true"
