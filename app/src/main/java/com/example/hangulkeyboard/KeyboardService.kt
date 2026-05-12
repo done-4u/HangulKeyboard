@@ -1,5 +1,6 @@
 package com.example.hangulkeyboard
 
+import android.content.res.Configuration
 import android.inputmethodservice.InputMethodService
 import android.view.View
 import android.view.inputmethod.EditorInfo
@@ -22,9 +23,11 @@ class KeyboardService : InputMethodService() {
         setInputView(keyboard.root)
     }
 
-    // lazy loading is needed to prevent NullPointerException from applicationContext
-    private val modeKeyboardViewMap: Map<KeyboardMode, AbstractKeyboardView> by lazy {
-        mapOf(
+    // Deferred to avoid NullPointerException from applicationContext; reset on configuration
+    // change so views are re-inflated with the correct orientation-specific layout.
+    private var _modeKeyboardViewMap: Map<KeyboardMode, AbstractKeyboardView>? = null
+    private val modeKeyboardViewMap: Map<KeyboardMode, AbstractKeyboardView>
+        get() = _modeKeyboardViewMap ?: mapOf(
             KeyboardMode.KOREAN to KeyboardKorean(
                 applicationContext, layoutInflater, keyboardModeChangeListener
             ), KeyboardMode.ENGLISH to KeyboardEnglish(
@@ -32,8 +35,7 @@ class KeyboardService : InputMethodService() {
             ), KeyboardMode.SPECIAL to KeyboardSpecial(
                 applicationContext, layoutInflater, keyboardModeChangeListener
             )
-        )
-    }
+        ).also { _modeKeyboardViewMap = it }
 
     private fun getCurrentView(): AbstractKeyboardView {
         return modeKeyboardViewMap[currentMode] ?: error("No keyboard for mode $currentMode")
@@ -53,6 +55,11 @@ class KeyboardService : InputMethodService() {
         val currentView = getCurrentView()
         currentView.inputConnection = currentInputConnection
         return currentView.root
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        _modeKeyboardViewMap = null
     }
 
     override fun onUpdateSelection(
