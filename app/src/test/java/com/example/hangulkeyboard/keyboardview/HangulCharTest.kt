@@ -159,4 +159,191 @@ class HangulCharTest {
         assertEquals('몹', overflow.prev.toChar())
         assertEquals('시', h.toChar())
     }
+
+    @Test
+    fun `vowel added to sole consonant, connected overflow`() {
+        val h = HangulChar.fromChar('ㄱ')
+        val overflow = h.addAtomicPhoneme('ㆍ')
+        assertNotNull(overflow)
+        assertTrue(overflow!!.connected)
+        assertEquals('ㄱ', overflow.prev.toChar())
+        assertEquals('ㆍ', h.toChar())
+    }
+
+    // ── vowelPermeate ─────────────────────────────────────────────────────────
+
+    @Test
+    fun `vowelPermeate sets vowel on empty`() {
+        val h = HangulChar()
+        assertTrue(h.vowelPermeate('ㅏ'))
+        assertEquals('ㅏ', h.toChar())
+    }
+
+    @Test
+    fun `vowelPermeate on sole consonant`() {
+        val h = HangulChar.fromChar('ㄱ')
+        assertTrue(h.vowelPermeate('ㅗ'))
+        assertEquals('고', h.toChar())
+    }
+
+    @Test
+    fun `vowelPermeate builds compound vowel on sole vowel`() {
+        val h = HangulChar.fromChar('ㅜ')
+        assertTrue(h.vowelPermeate('ㅣ'))
+        assertEquals('ㅟ', h.toChar())
+    }
+
+    @Test
+    fun `vowelPermeate returns false on no-final`() {
+        val h = HangulChar.fromChar('가')
+        assertFalse(h.vowelPermeate('ㅗ'))
+    }
+
+    @Test
+    fun `vowelPermeate returns false on full`() {
+        val h = HangulChar.fromChar('각')
+        assertFalse(h.vowelPermeate('ㅗ'))
+    }
+
+    // ── absorbFinalConsonant ──────────────────────────────────────────────────
+
+    @Test
+    fun `absorbFinalConsonant takes simple final consonant`() {
+        val prev = HangulChar.fromChar('각')
+        val curr = HangulChar.fromChar('ㅡ')
+        assertTrue(curr.absorbFinalConsonant(prev))
+        assertEquals('가', prev.toChar())
+        assertEquals('그', curr.toChar())
+    }
+
+    @Test
+    fun `absorbFinalConsonant splits complex final consonant`() {
+        val prev = HangulChar.fromChar('닭')
+        val curr = HangulChar.fromChar('ㅡ')
+        assertTrue(curr.absorbFinalConsonant(prev))
+        assertEquals('달', prev.toChar())
+        assertEquals('그', curr.toChar())
+    }
+
+    @Test
+    fun `absorbFinalConsonant returns false when curr not sole vowel`() {
+        val prev = HangulChar.fromChar('각')
+        val curr = HangulChar.fromChar('ㄱ')
+        assertFalse(curr.absorbFinalConsonant(prev))
+    }
+
+    @Test
+    fun `absorbFinalConsonant returns false when prev not full`() {
+        val prev = HangulChar.fromChar('가')
+        val curr = HangulChar.fromChar('ㅡ')
+        assertFalse(curr.absorbFinalConsonant(prev))
+    }
+
+    // ── erase ─────────────────────────────────────────────────────────────────
+
+    @Test
+    fun `erase returns false when empty`() {
+        assertFalse(HangulChar().erase())
+    }
+
+    @Test
+    fun `erase removes sole consonant`() {
+        val h = HangulChar.fromChar('ㄱ')
+        assertTrue(h.erase())
+        assertTrue(h.isEmpty())
+    }
+
+    @Test
+    fun `erase removes sole vowel`() {
+        val h = HangulChar.fromChar('ㅏ')
+        assertTrue(h.erase())
+        assertTrue(h.isEmpty())
+    }
+
+    @Test
+    fun `erase removes final consonant from full`() {
+        val h = HangulChar.fromChar('각')
+        assertTrue(h.erase())
+        assertEquals('가', h.toChar())
+    }
+
+    @Test
+    fun `erase splits complex final consonant`() {
+        val h = HangulChar.fromChar('닭')
+        assertTrue(h.erase())
+        assertEquals('달', h.toChar())
+    }
+
+    @Test
+    fun `erase removes medial vowel from no-final`() {
+        val h = HangulChar.fromChar('가')
+        assertTrue(h.erase())
+        assertEquals('ㄱ', h.toChar())
+    }
+
+    @Test
+    fun `erase simplifies compound medial vowel`() {
+        val h = HangulChar.fromChar('ㅟ')
+        assertTrue(h.erase())
+        assertEquals('ㅜ', h.toChar())
+    }
+
+    // ── stroke ────────────────────────────────────────────────────────────────
+
+    @Test
+    fun `stroke returns null on empty`() {
+        assertNull(HangulChar().stroke())
+    }
+
+    @Test
+    fun `stroke transforms sole consonant`() {
+        val h = HangulChar.fromChar('ㄱ')
+        assertNull(h.stroke())
+        assertEquals('ㅋ', h.toChar())
+    }
+
+    @Test
+    fun `stroke transforms medial vowel on no-final`() {
+        val h = HangulChar.fromChar('가')
+        assertNull(h.stroke())
+        assertEquals('개', h.toChar())
+    }
+
+    @Test
+    fun `stroke transforms final consonant to valid final consonant`() {
+        val h = HangulChar.fromChar('당')
+        assertNull(h.stroke())
+        assertEquals('닿', h.toChar())
+    }
+
+    // ── double ────────────────────────────────────────────────────────────────
+
+    @Test
+    fun `double returns null on empty`() {
+        assertNull(HangulChar().double())
+    }
+
+    @Test
+    fun `double transforms sole consonant`() {
+        val h = HangulChar.fromChar('ㄱ')
+        assertNull(h.double())
+        assertEquals('ㄲ', h.toChar())
+    }
+
+    @Test
+    fun `double transforms final consonant to valid final consonant`() {
+        val h = HangulChar.fromChar('갓')
+        assertNull(h.double())
+        assertEquals('갔', h.toChar())
+    }
+
+    @Test
+    fun `double overflows when transformed final consonant is invalid`() {
+        val h = HangulChar.fromChar('갇')
+        val overflow = h.double()
+        assertNotNull(overflow)
+        assertFalse(overflow!!.connected)
+        assertEquals('가', overflow.prev.toChar())
+        assertEquals('ㄸ', h.toChar())
+    }
 }
